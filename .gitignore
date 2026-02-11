@@ -1,40 +1,33 @@
-# --------------------------
-# Python bytecode
-# --------------------------
+# Python
 __pycache__/
 *.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.log
 
-# --------------------------
-# Virtual environments / env files
-# --------------------------
+# Virtual environment
+.venv/
+env/
 venv/
-.env/
 
-# --------------------------
-# Jupyter notebook checkpoints
-# --------------------------
+# Jupyter
 .ipynb_checkpoints/
-notebooks/.ipynb_checkpoints/
+*.ipynb_checkpoints
 
-# --------------------------
-# OS / editor files
-# --------------------------
-.DS_Store
+# VSCode / PyCharm
 .vscode/
+.idea/
 
-# --------------------------
-# Data / large files (if not committed)
-# --------------------------
-data/
-*.csv
-*.zip
+# Data files
+*.h5
 *.pt
 *.pth
-*.onnx
+*.npy
+*.npz
 
-# --------------------------
-# Testing / coverage
-# --------------------------
-.pytest_cache/
-.coverage
-htmlcov/
+# OS
+.DS_Store
+Thumbs.db
