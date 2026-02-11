@@ -1,0 +1,40 @@
+# --------------------------
+# Python bytecode
+# --------------------------
+__pycache__/
+*.py[cod]
+
+# --------------------------
+# Virtual environments / env files
+# --------------------------
+venv/
+.env/
+
+# --------------------------
+# Jupyter notebook checkpoints
+# --------------------------
+.ipynb_checkpoints/
+notebooks/.ipynb_checkpoints/
+
+# --------------------------
+# OS / editor files
+# --------------------------
+.DS_Store
+.vscode/
+
+# --------------------------
+# Data / large files (if not committed)
+# --------------------------
+data/
+*.csv
+*.zip
+*.pt
+*.pth
+*.onnx
+
+# --------------------------
+# Testing / coverage
+# --------------------------
+.pytest_cache/
+.coverage
+htmlcov/
