@@ -25,3 +25,4 @@ venv/
 *.h5 *.pt !app/weights/yolov8n.pt *.pth *.npy *.npz # OS
 .DS_Store
 Thumbs.db
+data/
