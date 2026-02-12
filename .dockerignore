@@ -1,11 +1,55 @@
+# =============================================================================
+# Docker Ignore - Exclude from build context
+# =============================================================================
+
+# Version control
+.git/
+.gitignore
+
+# Python artifacts
 __pycache__/
-*.pyc
+*.py[cod]
 *.pyo
 *.pyd
-.ipynb_checkpoints
-notebooks/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
 tests/
-.git
-.gitignore
-.venv
+
+# Notebooks (not needed for API container)
+notebooks/
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+
+# Documentation (already in image via COPY)
+*.md
+!README.md
+
+# Local data (mounted as volume)
 data/
+
+# Environment files
+.env
+.env.*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Development tools
+Makefile
+.pre-commit-config.yaml

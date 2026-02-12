@@ -4,7 +4,7 @@ import cv2
 from unittest.mock import Mock, MagicMock, patch
 from pathlib import Path
 from app.services.detection import DetectionService
-from app.models import Coin
+from app.db.models import Coin
 
 @pytest.fixture
 def mock_model():

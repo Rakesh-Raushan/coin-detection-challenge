@@ -1,28 +1,79 @@
+# =============================================================================
+# Coin Detection API - Git Ignore
+# =============================================================================
+
 # Python
 __pycache__/
 *.py[cod]
+*$py.class
 *.so
 *.egg
 *.egg-info/
 dist/
 build/
-*.log
+eggs/
+*.manifest
+*.spec
 
-# Virtual environment
+# Virtual environments
 .venv/
-env/
 venv/
+env/
+ENV/
 
-# Jupyter
+# Jupyter Notebooks
 .ipynb_checkpoints/
 *.ipynb_checkpoints
 
-# VSCode / PyCharm
+# IDE / Editor
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
-# Data files
-*.h5 *.pt !app/weights/yolov8n.pt *.pth *.npy *.npz # OS
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+*.py,cover
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Linting
+.ruff_cache/
+
+# OS files
 .DS_Store
 Thumbs.db
+
+# Runtime data (persisted via Docker volumes)
 data/
+
+# Environment files (keep .env.example)
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# Model weights (keep in artifacts/ via Git LFS or download script)
+# Uncomment if not using Git LFS:
+# *.pt
+# *.pth
+# *.onnx
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/

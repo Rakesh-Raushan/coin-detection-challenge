@@ -1,19 +1,20 @@
 import shutil
-import os
 import uuid
 import cv2
 import numpy as np
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from fastapi.responses import FileResponse
-from sqlmodel import Session, select
+from sqlmodel import Session
+from app.core.config import settings
 from app.core.db import get_session
-from app.models import Image, Coin, ImageRead, CoinRead
+from app.db.models import Image, Coin, ImageRead, CoinRead
 from app.services.geometry import CoinGeometry
 from app.services.detection import detector
 
 router = APIRouter()
-UPLOAD_DIR = "data/uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+# Use centralized config for paths
+UPLOAD_DIR = settings.UPLOAD_DIR
 
 # upload and process (the eager execution assumes we want to process immediately, but we can easily decouple this later if needed)
 # Intentionally not call the endpoint /upload but rather /images because it is more RESTful to treat the upload as creating a new image resource
@@ -29,7 +30,7 @@ async def upload_image(file: UploadFile = File(...), session: Session = Depends(
     image_id = str(uuid.uuid4())[:8] #Keeping shorter the uuid for easier handling
     ext = file.filename.split(".")[-1]
     filename = f"{image_id}.{ext}"
-    file_path = os.path.join(UPLOAD_DIR, filename)
+    file_path = UPLOAD_DIR / filename
 
     # Save the file to disk
     with open(file_path, "wb") as buffer:
@@ -37,10 +38,10 @@ async def upload_image(file: UploadFile = File(...), session: Session = Depends(
 
     # Trigger detection (Eager approach: we can easily change this to be async or trigger a background task if needed)
     try:
-        detected_coins = detector.process_image(file_path, image_id)
+        detected_coins = detector.process_image(str(file_path), image_id)
     except Exception as e:
         # Clean up the uploaded file if processing fails
-        os.remove(file_path)
+        file_path.unlink(missing_ok=True)
         raise HTTPException(status_code=500, detail=f"Detection error: {str(e)}")
     
     # Save to DB
@@ -80,11 +81,11 @@ def render_mask(image_id: str, session: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="Image not found.")
     
     # Load the original image
-    file_path = os.path.join(UPLOAD_DIR, image_record.filename)
-    if not os.path.exists(file_path):
+    file_path = UPLOAD_DIR / image_record.filename
+    if not file_path.exists():
         raise HTTPException(status_code=404, detail="Image file not found on disk.")
     
-    img = cv2.imread(file_path)
+    img = cv2.imread(str(file_path))
     if img is None:
         raise HTTPException(status_code=500, detail="Failed to read the image file.")
     
@@ -102,10 +103,10 @@ def render_mask(image_id: str, session: Session = Depends(get_session)):
         cv2.putText(img, coin.id, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
     # save temp file to stream back as response
-    render_path = os.path.join(UPLOAD_DIR, f"{image_id}_render.png")
-    cv2.imwrite(render_path, img)
+    render_path = UPLOAD_DIR / f"{image_id}_render.png"
+    cv2.imwrite(str(render_path), img)
 
-    return FileResponse(render_path, media_type="image/png")
+    return FileResponse(str(render_path), media_type="image/png")
 
 @router.get("/health")
 def health_check():

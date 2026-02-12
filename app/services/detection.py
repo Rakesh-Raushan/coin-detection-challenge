@@ -1,14 +1,15 @@
-import uuid
-import os
+"""Detection service for coin detection using YOLO."""
 from pathlib import Path
 from typing import List
 from ultralytics import YOLO
+from app.core.config import settings
 from app.services.geometry import CoinGeometry
-from app.models import Coin
+from app.db.models import Coin
+
 
 class DetectionService:
-    def __init__(self, model_path: str):
-        self.model = YOLO(model_path)
+    def __init__(self, MODEL_PATH: Path):
+        self.model = YOLO(str(MODEL_PATH))
 
     def process_image(self, image_path: str, image_id: str) -> List[Coin]:
         """
@@ -70,9 +71,9 @@ class DetectionService:
 
         return coin_objects
 
-_default_model_path = os.path.join(os.path.dirname(__file__), '..', 'weights', 'yolov8n.pt')
-MODEL_PATH = os.getenv('MODEL_PATH', str(Path(_default_model_path).resolve()))
-if not Path(MODEL_PATH).exists():
-    raise FileNotFoundError(f"Model not found at {MODEL_PATH}")
 
-detector = DetectionService(MODEL_PATH)  # keep it singleton
+# Initialize singleton detector with model from config
+if not settings.MODEL_PATH.exists():
+    raise FileNotFoundError(f"Model not found at {settings.MODEL_PATH}")
+
+detector = DetectionService(settings.MODEL_PATH)
