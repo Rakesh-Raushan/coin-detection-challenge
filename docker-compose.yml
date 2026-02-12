@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    container_name: coin-detector
+    ports:
+      - "8000:8000"
+    volumes:
+      #map the local data folder to contianers data folder
+      # this persists both uploaded images and sqlite db
+      - ./data:/code/data
+    environment:
+      - MAX_WORKERS=1
+    restart: unless-stopped

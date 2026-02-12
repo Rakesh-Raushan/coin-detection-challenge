@@ -22,12 +22,6 @@ venv/
 .idea/
 
 # Data files
-*.h5
-*.pt
-*.pth
-*.npy
-*.npz
-
-# OS
+*.h5 *.pt !app/weights/yolov8n.pt *.pth *.npy *.npz # OS
 .DS_Store
 Thumbs.db
