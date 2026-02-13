@@ -1,4 +1,3 @@
-# app/evaluation/config.py
 """
 Evaluation configuration module.
 
@@ -11,6 +10,10 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import List
+
+
+# Project root directory (evaluation/ is one level below root)
+PROJECT_ROOT = Path(__file__).parent.parent.resolve()
 
 
 class EvalConfig:
@@ -41,7 +44,7 @@ class EvalConfig:
     # Model Configuration
     # ─────────────────────────────────────────────────────────────────────────────
     MODEL_PATH: Path = Path(
-        os.getenv("EVAL_MODEL_PATH", "artifacts/models/yolov8n.pt")
+        os.getenv("EVAL_MODEL_PATH", str(PROJECT_ROOT / "artifacts/models/yolov8n.pt"))
     )
     MODEL_FRAMEWORK: str = os.getenv("EVAL_MODEL_FRAMEWORK", "ultralytics")
     MODEL_INPUT_SIZE: List[int] = [640, 640]
@@ -56,7 +59,9 @@ class EvalConfig:
     # ─────────────────────────────────────────────────────────────────────────────
     # Output & Logging
     # ─────────────────────────────────────────────────────────────────────────────
-    OUTPUT_BASE_DIR: Path = Path(os.getenv("EVAL_OUTPUT_DIR", "artifacts/evaluation"))
+    OUTPUT_BASE_DIR: Path = Path(
+        os.getenv("EVAL_OUTPUT_DIR", str(PROJECT_ROOT / "artifacts/evaluation"))
+    )
     VERBOSE: bool = os.getenv("EVAL_VERBOSE", "true").lower() in ("true", "1", "yes")
 
     # Failure example selection
@@ -85,3 +90,40 @@ class EvalConfig:
     def model_id(self) -> str:
         """Return model identifier from path."""
         return self.MODEL_PATH.stem
+
+    def validate_model_path(self) -> None:
+        """
+        Validate that the model file exists.
+        
+        Raises:
+            FileNotFoundError: If the model file does not exist.
+        """
+        if not self.MODEL_PATH.exists():
+            raise FileNotFoundError(
+                f"Model not found at: {self.MODEL_PATH}\n"
+                f"The evaluation module requires an existing model file.\n"
+                f"Please ensure the model is placed at the specified path or set EVAL_MODEL_PATH environment variable."
+            )
+
+    def validate_annotations_path(self) -> None:
+        """
+        Validate that the annotations file exists.
+        
+        Raises:
+            FileNotFoundError: If the annotations file does not exist.
+        """
+        if not self.ANNOTATIONS_PATH.exists():
+            raise FileNotFoundError(
+                f"Annotations not found at: {self.ANNOTATIONS_PATH}\n"
+                f"Please ensure the annotations file exists or set EVAL_ANNOTATIONS_PATH environment variable."
+            )
+
+    def validate(self) -> None:
+        """
+        Validate all required paths exist before evaluation.
+        
+        Raises:
+            FileNotFoundError: If any required file is missing.
+        """
+        self.validate_model_path()
+        self.validate_annotations_path()

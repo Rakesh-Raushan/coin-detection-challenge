@@ -1,4 +1,3 @@
-# app/evaluation/evaluator.py
 """
 Model evaluation orchestrator.
 
@@ -46,9 +45,21 @@ class Evaluator:
         Args:
             config: Evaluation configuration. If None, creates new instance
                     with default settings from environment variables.
+        
+        Raises:
+            FileNotFoundError: If model or annotations file does not exist.
         """
         self.config = config or EvalConfig()
         self.logger = get_logger()
+
+        # Validate required paths before proceeding
+        self._log(f"Validating configuration...")
+        self.config.validate()
+        self._log(f"  Model: {self.config.MODEL_PATH}")
+        self._log(f"  Annotations: {self.config.ANNOTATIONS_PATH}")
+
+        # Load model (only after validation passes)
+        self._log(f"Loading model...")
         self.model = YOLO(str(self.config.MODEL_PATH))
 
         # Load annotations

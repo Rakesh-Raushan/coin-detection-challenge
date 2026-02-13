@@ -1,0 +1,21 @@
+{
+  "timestamp": "2026-02-13T10:20:00.434324Z",
+  "git_commit": "3e7184e346c440c73444297664fd2d1032c10504",
+  "model": {
+    "name": "yolov8n",
+    "file_size_mb": 6.25,
+    "input_size": [
+      640,
+      640
+    ]
+  },
+  "dataset": {
+    "name": "coin-dataset",
+    "num_images": 191,
+    "annotations_hash": "sha256:77070b60c2fd86d6"
+  },
+  "config": {
+    "iou_policy": "COCO_0.5_0.95",
+    "confidence_threshold": 0.25
+  }
+}
