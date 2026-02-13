@@ -1,6 +1,7 @@
 """Detection service for coin detection using YOLO."""
 from pathlib import Path
-from typing import List
+from typing import List, Optional
+import threading
 from ultralytics import YOLO
 from app.core.config import settings
 from app.services.geometry import CoinGeometry
@@ -72,8 +73,71 @@ class DetectionService:
         return coin_objects
 
 
-# Initialize singleton detector with model from config
-if not settings.MODEL_PATH.exists():
-    raise FileNotFoundError(f"Model not found at {settings.MODEL_PATH}")
+# Lazy-loading singleton pattern with thread safety
+_detector_instance: Optional[DetectionService] = None
+_detector_lock = threading.Lock()
+_model_load_error: Optional[str] = None
 
-detector = DetectionService(settings.MODEL_PATH)
+
+def get_detector() -> Optional[DetectionService]:
+    """
+    Lazy-load the detector singleton. Returns None if model is unavailable.
+    Thread-safe initialization using double-checked locking pattern.
+    """
+    global _detector_instance, _model_load_error
+
+    # Fast path: if already initialized, return immediately
+    if _detector_instance is not None:
+        return _detector_instance
+
+    # If we've already tried and failed, don't retry
+    if _model_load_error is not None:
+        return None
+
+    # Slow path: acquire lock and initialize
+    with _detector_lock:
+        # Double-check: another thread might have initialized while we waited
+        if _detector_instance is not None:
+            return _detector_instance
+
+        if _model_load_error is not None:
+            return None
+
+        # Attempt initialization
+        try:
+            if not settings.MODEL_PATH.exists():
+                _model_load_error = f"Model not found at {settings.MODEL_PATH}"
+                return None
+
+            _detector_instance = DetectionService(settings.MODEL_PATH)
+            return _detector_instance
+        except Exception as e:
+            _model_load_error = f"Failed to load model: {str(e)}"
+            return None
+
+
+def get_model_status() -> dict:
+    """
+    Returns the current model availability status.
+    """
+    global _detector_instance, _model_load_error
+
+    if _detector_instance is not None:
+        return {
+            "available": True,
+            "model_path": str(settings.MODEL_PATH),
+            "status": "loaded"
+        }
+    elif _model_load_error is not None:
+        return {
+            "available": False,
+            "model_path": str(settings.MODEL_PATH),
+            "status": "error",
+            "error": _model_load_error
+        }
+    else:
+        return {
+            "available": False,
+            "model_path": str(settings.MODEL_PATH),
+            "status": "not_loaded"
+        }

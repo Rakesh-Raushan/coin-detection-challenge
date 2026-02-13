@@ -9,7 +9,7 @@ from app.core.config import settings
 from app.core.db import get_session
 from app.db.models import Image, Coin, ImageRead, CoinRead
 from app.services.geometry import CoinGeometry
-from app.services.detection import detector
+from app.services.detection import get_detector, get_model_status
 
 router = APIRouter()
 
@@ -38,7 +38,21 @@ async def upload_image(file: UploadFile = File(...), session: Session = Depends(
 
     # Trigger detection (Eager approach: we can easily change this to be async or trigger a background task if needed)
     try:
+        detector = get_detector()
+        if detector is None:
+            # Clean up the uploaded file if model is unavailable
+            file_path.unlink(missing_ok=True)
+            model_status = get_model_status()
+            error_detail = model_status.get("error", "Model not available")
+            raise HTTPException(
+                status_code=503,
+                detail=f"Detection service unavailable: {error_detail}"
+            )
+
         detected_coins = detector.process_image(str(file_path), image_id)
+    except HTTPException:
+        # Re-raise HTTPExceptions (like our 503 above)
+        raise
     except Exception as e:
         # Clean up the uploaded file if processing fails
         file_path.unlink(missing_ok=True)
@@ -110,4 +124,10 @@ def render_mask(image_id: str, session: Session = Depends(get_session)):
 
 @router.get("/health")
 def health_check():
-    return {"status": "healthy", "Service": "Coin Detection", "version": "1.0"}
+    model_status = get_model_status()
+    return {
+        "status": "healthy",
+        "service": "Coin Detection",
+        "version": "1.0",
+        "model": model_status
+    }
