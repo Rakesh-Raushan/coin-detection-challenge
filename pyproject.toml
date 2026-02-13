@@ -19,6 +19,9 @@ dependencies = [
     "pillow==11.0.0",
     "python-multipart==0.0.20",
     "pydantic-settings==2.6.1",
+    "ipykernel",
+    "pip",
+    "opencv-python>=4.11.0.86",
 ]
 
 [project.optional-dependencies]

@@ -389,9 +389,12 @@ version = "1.0.0"
 source = { virtual = "." }
 dependencies = [
     { name = "fastapi" },
+    { name = "ipykernel" },
     { name = "numpy" },
+    { name = "opencv-python" },
     { name = "opencv-python-headless" },
     { name = "pillow" },
+    { name = "pip" },
     { name = "pydantic-settings" },
     { name = "python-multipart" },
     { name = "sqlmodel" },
@@ -416,12 +419,15 @@ notebook = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi", specifier = "==0.115.6" },
+    { name = "ipykernel" },
     { name = "jupyter", marker = "extra == 'notebook'", specifier = "==1.1.1" },
     { name = "matplotlib", marker = "extra == 'notebook'", specifier = "==3.9.3" },
     { name = "mypy", marker = "extra == 'dev'", specifier = "==1.14.0" },
     { name = "numpy", specifier = "==1.26.4" },
+    { name = "opencv-python", specifier = ">=4.11.0.86" },
     { name = "opencv-python-headless", specifier = "==4.10.0.84" },
     { name = "pillow", specifier = "==11.0.0" },
+    { name = "pip" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = "==4.0.1" },
     { name = "pydantic-settings", specifier = "==2.6.1" },
     { name = "pytest", marker = "extra == 'dev'", specifier = "==8.3.4" },
@@ -2453,6 +2459,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/0e/75/689b4ec0483c42bfc7d1aacd32ade7a226db4f4fac57c6fdcdf90c0731e3/pillow-11.0.0-pp310-pypy310_pp73-manylinux_2_28_aarch64.whl", hash = "sha256:73853108f56df97baf2bb8b522f3578221e56f646ba345a372c78326710d3830", size = 3310533, upload-time = "2024-10-15T14:24:14.563Z" },
     { url = "https://files.pythonhosted.org/packages/3d/30/38bd6149cf53da1db4bad304c543ade775d225961c4310f30425995cb9ec/pillow-11.0.0-pp310-pypy310_pp73-manylinux_2_28_x86_64.whl", hash = "sha256:e58876c91f97b0952eb766123bfef372792ab3f4e3e1f1a2267834c2ab131734", size = 3414886, upload-time = "2024-10-15T14:24:16.511Z" },
     { url = "https://files.pythonhosted.org/packages/ec/3d/c32a51d848401bd94cabb8767a39621496491ee7cd5199856b77da9b18ad/pillow-11.0.0-pp310-pypy310_pp73-win_amd64.whl", hash = "sha256:224aaa38177597bb179f3ec87eeefcce8e4f85e608025e9cfac60de237ba6316", size = 2567508, upload-time = "2024-10-15T14:24:18.616Z" },
+]
+
+[[package]]
+name = "pip"
+version = "26.0.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/48/83/0d7d4e9efe3344b8e2fe25d93be44f64b65364d3c8d7bc6dc90198d5422e/pip-26.0.1.tar.gz", hash = "sha256:c4037d8a277c89b320abe636d59f91e6d0922d08a05b60e85e53b296613346d8", size = 1812747, upload-time = "2026-02-05T02:20:18.702Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/de/f0/c81e05b613866b76d2d1066490adf1a3dbc4ee9d9c839961c3fc8a6997af/pip-26.0.1-py3-none-any.whl", hash = "sha256:bdb1b08f4274833d62c1aa29e20907365a2ceb950410df15fc9521bad440122b", size = 1787723, upload-time = "2026-02-05T02:20:16.416Z" },
 ]
 
 [[package]]
