@@ -44,7 +44,7 @@ class EvalConfig:
     # Model Configuration
     # ─────────────────────────────────────────────────────────────────────────────
     MODEL_PATH: Path = Path(
-        os.getenv("EVAL_MODEL_PATH", str(PROJECT_ROOT / "artifacts/models/yolov8n.pt"))
+        os.getenv("EVAL_MODEL_PATH", str(PROJECT_ROOT / "artifacts/models/yolov8n-coin-finetuned.pt"))
     )
     MODEL_FRAMEWORK: str = os.getenv("EVAL_MODEL_FRAMEWORK", "ultralytics")
     MODEL_INPUT_SIZE: List[int] = [640, 640]

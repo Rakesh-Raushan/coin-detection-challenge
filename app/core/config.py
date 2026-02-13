@@ -35,7 +35,7 @@ class Settings:
     
     def __init__(self):
         # Resolve model path from environment or default
-        default_model_path = self.ARTIFACTS_DIR / "models" / "yolov8n.pt"
+        default_model_path = self.ARTIFACTS_DIR / "models" / "yolov8n-coin-finetuned.pt"
         self.MODEL_PATH = Path(os.getenv("MODEL_PATH", str(default_model_path))).resolve()
         
         # Allow override of data directory (useful for Docker)

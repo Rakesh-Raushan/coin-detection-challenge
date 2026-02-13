@@ -2,8 +2,7 @@ FROM python:3.10-slim
 
 # Environment configuration
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    MODEL_PATH=/code/artifacts/models/yolov8n.pt
+    PYTHONUNBUFFERED=1
 
 # System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -26,8 +25,12 @@ COPY uv.lock pyproject.toml ./
 RUN uv export --frozen --no-hashes -o /tmp/requirements.txt && \
     uv pip install --system --no-cache -r /tmp/requirements.txt
 
-# Copy artifacts and app
-COPY artifacts/ ./artifacts/
+# Model file to copy (must match default in app/core/config.py)
+ARG MODEL_FILE=yolov8n-coin-finetuned.pt
+
+# Copy only the specific model file (not entire artifacts/) to minimize image size
+RUN mkdir -p ./artifacts/models
+COPY artifacts/models/${MODEL_FILE} ./artifacts/models/
 COPY app/ ./app/
 
 # Create data directory and set permissions

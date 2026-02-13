@@ -12,7 +12,6 @@ services:
       # Persist uploaded images and SQLite database
       - ./data:/code/data
     environment:
-      - MODEL_PATH=/code/artifacts/models/yolov8n.pt
       - PYTHONUNBUFFERED=1
     restart: unless-stopped
     healthcheck:
