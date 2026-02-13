@@ -62,7 +62,7 @@ def export_model(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Export best model from experiment")
     parser.add_argument(
-        "experiment_dir",
+        "--experiment_dir",
         type=Path,
         help="Path to experiment directory (e.g., experiments/20260213T...)",
     )
