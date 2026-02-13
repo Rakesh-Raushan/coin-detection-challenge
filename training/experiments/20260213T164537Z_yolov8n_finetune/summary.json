@@ -1,0 +1,7 @@
+{
+  "experiment": "20260213T164537Z_yolov8n_finetune",
+  "base_model": "yolov8n.pt",
+  "dataset_config": "/Users/rraushan/projects/G42/Challenge1/coin-detection-challenge/training/configs/dataset.yaml",
+  "best_model": "/Users/rraushan/projects/G42/Challenge1/coin-detection-challenge/training/experiments/20260213T164537Z_yolov8n_finetune/train/weights/best.pt",
+  "last_model": "/Users/rraushan/projects/G42/Challenge1/coin-detection-challenge/training/experiments/20260213T164537Z_yolov8n_finetune/train/weights/last.pt"
+}

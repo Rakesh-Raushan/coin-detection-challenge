@@ -1,0 +1,11 @@
+# Dataset configuration for YOLOv8 fine-tuning
+# NOTE: 'path' is written as an absolute path by prepare_dataset.py
+# Ultralytics resolves relative paths against its own datasets_dir setting,
+# not the YAML file location — so absolute paths are the only reliable option.
+
+path: /Users/rraushan/projects/G42/Challenge1/coin-detection-challenge/training/data/processed/yolo
+train: images/train
+val: images/val
+nc: 1
+names:
+  0: coin

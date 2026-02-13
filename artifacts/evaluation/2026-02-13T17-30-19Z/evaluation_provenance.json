@@ -1,0 +1,21 @@
+{
+  "timestamp": "2026-02-13T17:30:19.008846Z",
+  "git_commit": "51e641f4d2e72f04c9b6a3dfb809cca4e0bfc506",
+  "model": {
+    "name": "best",
+    "file_size_mb": 5.96,
+    "input_size": [
+      640,
+      640
+    ]
+  },
+  "dataset": {
+    "name": "images",
+    "num_images": 26,
+    "annotations_hash": "sha256:486f1bd9f2afdb40"
+  },
+  "config": {
+    "iou_policy": "COCO_0.5_0.95",
+    "confidence_threshold": 0.25
+  }
+}
