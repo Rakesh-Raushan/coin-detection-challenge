@@ -1,0 +1,85 @@
+name: CI — Build & Smoke Test
+
+on:
+  push:
+    branches: [main, simplify-evaluation]
+  pull_request:
+    branches: [main]
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build & start container
+        run: docker compose up --build -d
+
+      - name: Wait for healthy container
+        run: |
+          echo "Waiting for container to become healthy..."
+          for i in $(seq 1 30); do
+            STATUS=$(docker inspect --format='{{.State.Health.Status}}' coin-detector 2>/dev/null || echo "starting")
+            echo "  Attempt $i/30: $STATUS"
+            if [ "$STATUS" = "healthy" ]; then
+              echo "Container is healthy!"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Container did not become healthy in time"
+          docker compose logs
+          exit 1
+
+      - name: Health check
+        run: |
+          RESPONSE=$(curl -sf http://localhost:8000/api/v1/health)
+          echo "$RESPONSE" | python3 -m json.tool
+          echo "$RESPONSE" | python3 -c "
+          import sys, json
+          data = json.load(sys.stdin)
+          assert data['status'] == 'healthy', f'Unexpected status: {data[\"status\"]}'
+          print('Health check passed')
+          "
+
+      - name: Upload sample image
+        run: |
+          RESPONSE=$(curl -sf -X POST http://localhost:8000/api/v1/images \
+            -F "file=@samples/sample_coins.jpg")
+          echo "$RESPONSE" | python3 -m json.tool
+
+          # Extract image ID and validate response
+          IMAGE_ID=$(echo "$RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
+          COIN_COUNT=$(echo "$RESPONSE" | python3 -c "import sys,json; print(len(json.load(sys.stdin)['coins']))")
+          echo "Detected $COIN_COUNT coin(s) in image $IMAGE_ID"
+
+          # Store for subsequent steps
+          echo "IMAGE_ID=$IMAGE_ID" >> $GITHUB_ENV
+          echo "COIN_COUNT=$COIN_COUNT" >> $GITHUB_ENV
+
+          # Must detect at least 1 coin
+          [ "$COIN_COUNT" -ge 1 ] || { echo "FAIL: No coins detected"; exit 1; }
+
+      - name: Retrieve image details
+        run: |
+          curl -sf http://localhost:8000/api/v1/images/$IMAGE_ID | python3 -m json.tool
+
+      - name: Retrieve coin details
+        run: |
+          COIN_ID="${IMAGE_ID}_coin_001"
+          curl -sf http://localhost:8000/api/v1/coins/$COIN_ID | python3 -m json.tool
+
+      - name: Render visualization
+        run: |
+          curl -sf http://localhost:8000/api/v1/images/$IMAGE_ID/render \
+            --output render_output.png
+          FILE_SIZE=$(stat -c%s render_output.png 2>/dev/null || stat -f%z render_output.png)
+          echo "Render output: $FILE_SIZE bytes"
+          [ "$FILE_SIZE" -gt 0 ] || { echo "FAIL: Empty render output"; exit 1; }
+
+      - name: Cleanup
+        if: always()
+        run: docker compose down
