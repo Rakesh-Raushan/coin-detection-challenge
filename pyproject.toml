@@ -55,6 +55,10 @@ addopts = [
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks integration tests",
+    "unit: marks unit tests",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
 ]
 
 [tool.coverage.run]
