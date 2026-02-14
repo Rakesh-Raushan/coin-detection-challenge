@@ -15,7 +15,8 @@ class Settings:
     APP_DIR: Path = BASE_DIR / "app"
     DATA_DIR: Path = BASE_DIR / "data"
     UPLOAD_DIR: Path = DATA_DIR / "uploads"
-    ARTIFACTS_DIR: Path = BASE_DIR / "artifacts"
+    MODELS_DIR: Path = BASE_DIR / "models"  # Production models
+    ARTIFACTS_DIR: Path = BASE_DIR / "training" / "artifacts"  # Training artifacts
     
     # Database
     DB_PATH: Path = DATA_DIR / "database.db"
@@ -35,7 +36,7 @@ class Settings:
     
     def __init__(self):
         # Resolve model path from environment or default
-        default_model_path = self.ARTIFACTS_DIR / "models" / "yolov8n-coin-finetuned.pt"
+        default_model_path = self.MODELS_DIR / "yolov8n-coin-finetuned.pt"
         self.MODEL_PATH = Path(os.getenv("MODEL_PATH", str(default_model_path))).resolve()
         
         # Allow override of data directory (useful for Docker)

@@ -90,4 +90,5 @@ def test_settings_model_path_default():
     settings = Settings()
 
     assert settings.MODEL_PATH.name == "yolov8n-coin-finetuned.pt"
-    assert "artifacts/models" in str(settings.MODEL_PATH)
+    assert "models" in str(settings.MODEL_PATH)
+    assert settings.MODEL_PATH.parent.name == "models"

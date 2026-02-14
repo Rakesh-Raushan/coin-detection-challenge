@@ -66,11 +66,12 @@ data/
 *.log
 logs/
 
-# Model weights (keep in artifacts/ via Git LFS or download script)
-# Uncomment if not using Git LFS:
-# *.pt
-# *.pth
-# *.onnx
+# Model weights (production models in models/, training artifacts in training/artifacts/)
+# Uncomment to exclude large model files (use Git LFS or external storage instead):
+# models/*.pt
+# models/*.pth
+# models/*.onnx
+# training/artifacts/models/*.pt
 
 # Temporary files
 *.tmp

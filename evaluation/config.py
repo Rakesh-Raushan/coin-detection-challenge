@@ -44,7 +44,7 @@ class EvalConfig:
     # Model Configuration
     # ─────────────────────────────────────────────────────────────────────────────
     MODEL_PATH: Path = Path(
-        os.getenv("EVAL_MODEL_PATH", str(PROJECT_ROOT / "artifacts/models/yolov8n-coin-finetuned.pt"))
+        os.getenv("EVAL_MODEL_PATH", str(PROJECT_ROOT / "models/yolov8n-coin-finetuned.pt"))
     )
     MODEL_FRAMEWORK: str = os.getenv("EVAL_MODEL_FRAMEWORK", "ultralytics")
     MODEL_INPUT_SIZE: List[int] = [640, 640]
@@ -60,7 +60,7 @@ class EvalConfig:
     # Output & Logging
     # ─────────────────────────────────────────────────────────────────────────────
     OUTPUT_BASE_DIR: Path = Path(
-        os.getenv("EVAL_OUTPUT_DIR", str(PROJECT_ROOT / "artifacts/evaluation"))
+        os.getenv("EVAL_OUTPUT_DIR", str(PROJECT_ROOT / "training/artifacts/evaluation"))
     )
     VERBOSE: bool = os.getenv("EVAL_VERBOSE", "true").lower() in ("true", "1", "yes")
 

@@ -1,8 +1,11 @@
 """
-Export the best checkpoint from a training experiment to the project artifacts folder.
+Export the best checkpoint from a training experiment to the production models folder.
 
-Copies the best.pt from an experiment run into artifacts/models/ with a
-descriptive name, making it available for the API and evaluation modules.
+Copies the best.pt from an experiment run into models/ at project root with a
+descriptive name, making it available for deployment and production use.
+
+Idea is to maintain clean separation between training artifacts (training/artifacts/)
+and production models (models/).
 """
 
 import argparse
@@ -12,7 +15,7 @@ from pathlib import Path
 
 TRAINING_ROOT = Path(__file__).parent.parent.resolve()
 PROJECT_ROOT = TRAINING_ROOT.parent.resolve()
-ARTIFACTS_DIR = PROJECT_ROOT / "artifacts" / "models"
+MODELS_DIR = PROJECT_ROOT / "models"  # Production models directory
 
 
 def export_model(
@@ -21,7 +24,7 @@ def export_model(
     format: str = "pt",
 ):
     """
-    Export best checkpoint from experiment to artifacts/models/.
+    Export best checkpoint from experiment to production models/ directory.
 
     Args:
         experiment_dir: Path to the experiment directory.
@@ -35,12 +38,13 @@ def export_model(
             f"Check that training completed and the experiment path is correct."
         )
 
-    ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)
+    MODELS_DIR.mkdir(parents=True, exist_ok=True)
 
     if format == "pt":
-        dst = ARTIFACTS_DIR / f"{model_name}.pt"
+        dst = MODELS_DIR / f"{model_name}.pt"
         shutil.copy2(best_pt, dst)
-        print(f"Exported model to {dst}")
+        print(f"✓ Exported production model to {dst}")
+        print(f"  Model ready for deployment!")
     else:
         # Use Ultralytics export for other formats
         from ultralytics import YOLO
@@ -50,9 +54,9 @@ def export_model(
         # Find the exported file
         exported = best_pt.parent / f"best.{format}"
         if exported.exists():
-            dst = ARTIFACTS_DIR / f"{model_name}.{format}"
+            dst = MODELS_DIR / f"{model_name}.{format}"
             shutil.move(str(exported), dst)
-            print(f"Exported model to {dst}")
+            print(f"Exported production model to {dst}")
         else:
             print(f"Export completed. Check {best_pt.parent} for output files.")
 

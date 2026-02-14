@@ -27,6 +27,11 @@ env/
 htmlcov/
 tests/
 
+# Training and experiments (n
+training/
+artifacts/
+evaluation/
+
 # Notebooks (not needed for API container)
 notebooks/
 .ipynb_checkpoints/

@@ -28,9 +28,9 @@ RUN uv export --frozen --no-hashes -o /tmp/requirements.txt && \
 # Model file to copy (must match default in app/core/config.py)
 ARG MODEL_FILE=yolov8n-coin-finetuned.pt
 
-# Copy model directory - the app will handle missing models gracefully at runtime
-RUN mkdir -p ./artifacts/models
-COPY artifacts/models/ ./artifacts/models/
+# Copy production models directory - clean separation from training artifacts
+RUN mkdir -p ./models
+COPY models/ ./models/
 COPY app/ ./app/
 
 # Create data directory and set permissions
