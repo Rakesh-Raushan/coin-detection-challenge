@@ -2,6 +2,7 @@
 
 > Production-ready REST API for detecting and identifying circular objects (coins) in images with geometric analysis. The system combines YOLO-based object detection with deterministic geometric post-processing to derive precise coin properties without pixel-level-segmenation training.
 
+[![CI — Build & Smoke Test](https://github.com/Rakesh-Raushan/coin-detection-challenge/actions/workflows/ci.yml/badge.svg)](https://github.com/Rakesh-Raushan/coin-detection-challenge/actions/workflows/ci.yml)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-green.svg)](https://fastapi.tiangolo.com)
 [![Docker](https://img.shields.io/badge/Docker-ready-blue.svg)](https://www.docker.com/)
@@ -67,8 +68,9 @@ make run  # Starts at http://localhost:8000
 ### Upload & Detect
 
 ```bash
+# Use the included sample image, or any JPEG/PNG
 curl -X POST "http://localhost:8000/api/v1/images" \
-  -F "file=@coin_image.jpg"
+  -F "file=@samples/sample_coins.jpg"
 ```
 
 **Response**:
