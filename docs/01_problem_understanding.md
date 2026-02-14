@@ -175,7 +175,7 @@ For details see [`training/artifacts/evaluation/2026-02-13T17-30-19Z/evaluation_
 
 **Cost**: Cannot handle irregular shapes (but coins are regular)
 
-### Trade-Off 2: Fine-Tuning vs.see evaluation summary for baselinecratch
+### Trade-Off 2: Fine-Tuning vs. Training from Scratch
 
 **Decision**: Fine-tune pre-trained YOLOv8n
 

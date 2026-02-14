@@ -5,7 +5,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-green.svg)](https://fastapi.tiangolo.com)
 [![Docker](https://img.shields.io/badge/Docker-ready-blue.svg)](https://www.docker.com/)
-[![Coverage](https://img.shields.io/badge/coverage-98%25-brightgreen.svg)](docs/07_testing_and_quality.md)
+[![Coverage](https://img.shields.io/badge/coverage-98%25-brightgreen.svg)](#)
 
 ---
 
@@ -125,8 +125,11 @@ curl "http://localhost:8000/api/v1/health"
 ```json
 {
   "status": "healthy",
+  "service": "Coin Detection",
+  "version": "1.0",
   "model": {
     "available": true,
+    "model_path": "models/yolov8n-coin-finetuned.pt",
     "status": "loaded"
   }
 }
@@ -152,13 +155,19 @@ curl "http://localhost:8000/api/v1/health"
 
 ```bash
 make help         # Show all available commands
+make install      # Install production dependencies
 make dev          # Install dev dependencies
+make run          # Run the API locally (uvicorn)
 make test         # Run tests (98% coverage)
 make test-cov     # Run tests with coverage report
 make lint         # Check code style (ruff)
-make format       # Auto-format code (black)
+make format       # Auto-format code (ruff)
+make typecheck    # Run type checker (mypy)
+make docker-build # Build Docker image
 make docker-up    # Start Docker containers
 make docker-down  # Stop Docker containers
+make docker-logs  # View container logs
+make clean        # Remove cache files and build artifacts
 ```
 
 ---
@@ -202,16 +211,11 @@ coin-detection-challenge/
 
 ### Documentation Structure
 
-📂 **Engineering Narrative** (`/docs/` — 8 documents)
+📂 **Engineering Narrative** (`/docs/`)
 
 1. **[Problem Understanding](docs/01_problem_understanding.md)**: Dataset analysis, constraints, assumptions, trade-offs
 2. **[Architecture Overview](docs/02_architecture_overview.md)**: System design, components, data flow, technology stack
 3. **[Detection and Geometry](docs/03_detection_and_geometry.md)**: YOLO pipeline, ellipse fitting, mask generation, edge cases
-4. **[Training Pipeline](docs/04_training_pipeline.md)**: Dataset management, hyperparameters, experiment tracking, model export
-5. **[Evaluation Framework](docs/05_evaluation_framework.md)**: Metrics rationale, proxy validation, failure bucketing, schema design
-6. **[MLOps and Deployment](docs/06_mlops_and_deployment.md)**: Containerization, observability, configuration, production path
-7. **[Testing and Quality](docs/07_testing_and_quality.md)**: 98% coverage, unit vs. integration, fixtures, CI/CD
-8. **[Design Decisions (ADRs)](docs/08_design_decisions.md)**: Key architectural choices with context and trade-offs
 
 📄 **Domain-Specific READMEs**
 
@@ -231,16 +235,9 @@ coin-detection-challenge/
 ```bash
 # Model configuration
 MODEL_PATH=models/yolov8n-coin-finetuned.pt
-CONFIDENCE_THRESHOLD=0.25
-IOU_THRESHOLD=0.45
 
 # Storage
-UPLOAD_DIR=data/uploads
-DATABASE_URL=sqlite:///data/database.db  # Or postgresql://...
-
-# Logging
-LOG_LEVEL=INFO
-LOG_FORMAT=json
+DATA_DIR=data  # Overrides upload dir and database path
 ```
 
 **See**: [`app/core/config.py`](app/core/config.py) for all settings
@@ -257,4 +254,4 @@ MIT
 
 Built as part of technical assessment challenge 1
 
-For detailed design rationale and trade-off analysis, see [Design Decisions (ADRs)](docs/08_design_decisions.md).
+For detailed design rationale and trade-off analysis, see the [documentation](docs/).

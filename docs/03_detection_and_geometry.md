@@ -149,7 +149,7 @@ class DetectionService:
    - Sufficient for coin detection; no manual tuning needed
 
 2. **Spatial Sorting**:
-   - Sort by (y_center, x_center) — top-to-bottom, left-to-right
+   - Sort by (y1, x1) — top-to-bottom, left-to-right using bbox top-left corner
    - Ensures predictable coin numbering based on spatial position within an image
 
 ---
@@ -163,10 +163,10 @@ class DetectionService:
 **Solution**: Fit ellipse to bbox dimensions
 
 ```python
-@staticmethod
-def analyze_detection(bbox: List[float]) -> Dict[str, Any]:
+@classmethod
+def analyze_detection(cls, bbox: List[float]) -> Dict[str, Any]:
     """
-    Analyze a bounding box and compute geometric properties.
+    Wrapper to return all geometric properties (extensible in the future).
 
     Args:
         bbox: [x, y, w, h] in pixel coordinates
@@ -179,25 +179,14 @@ def analyze_detection(bbox: List[float]) -> Dict[str, Any]:
             'is_slanted': bool
         }
     """
-    x, y, w, h = bbox
-
-    # Effective radius using max dimension (accounts for slanted coins)
-    radius = max(w, h) / 2.0
-
-    # Centroid (ellipse center)
-    center_point = (x + w / 2, y + h / 2)
-
-    # Aspect ratio for slant detection
-    aspect_ratio = w / h if h != 0 else 0
-
-    # Bidirectional slant detection: catches both wide and tall ellipses
-    is_slanted = aspect_ratio < 0.8 or aspect_ratio > 1.2
+    width = bbox[2]
+    height = bbox[3]
 
     return {
-        'radius': radius,
-        'center_point': center_point,
-        'aspect_ratio': aspect_ratio,
-        'is_slanted': is_slanted
+        'radius': cls.calculate_radius(width, height),
+        'center_point': (bbox[0] + width / 2, bbox[1] + height / 2),
+        'aspect_ratio': width / height if height != 0 else 0,
+        'is_slanted': width / height < 0.8 or width / height > 1.2
     }
 ```
 
@@ -211,36 +200,23 @@ def analyze_detection(bbox: List[float]) -> Dict[str, Any]:
 **Approach**: Generate binary mask for each coin using ellipse parameters
 
 ```python
-@staticmethod
-def generate_mask(bbox: List[float], img_shape: Tuple[int, int]) -> np.ndarray:
+@classmethod
+def generate_mask(cls, bbox: List[float], image_shape: Tuple[int, int]) -> np.ndarray:
     """
-    Generate binary segmentation mask for a coin.
+    Generates a binary mask for given coin using ellipse fitting.
 
     Args:
         bbox: [x, y, w, h]
-        img_shape: (height, width)
+        image_shape: (height, width) of the original image
 
     Returns:
-        Binary mask (np.ndarray) where 1 = coin, 0 = background
+        Binary mask (np.ndarray) where 255 = coin, 0 = background
     """
-    x, y, w, h = map(int, bbox)
-    mask = np.zeros(img_shape, dtype=np.uint8)
+    mask = np.zeros(image_shape[:2], dtype=np.uint8)
+    params = cls.get_ellipse_params(bbox)
 
-    center = (x + w // 2, y + h // 2)
-    axes = (w // 2, h // 2)
-    angle = 0  # Axis-aligned (YOLO doesn't predict rotation)
-
-    cv2.ellipse(
-        mask,
-        center=center,
-        axes=axes,
-        angle=angle,
-        startAngle=0,
-        endAngle=360,
-        color=255,
-        thickness=-1  # Filled
-    )
-
+    cv2.ellipse(mask, params['center'], params['axes'],
+                params['angle'], 0, 360, 255, -1)
     return mask
 ```
 
@@ -338,20 +314,8 @@ is_slanted = aspect_ratio < 0.8 or aspect_ratio > 1.2  # Catches both orientatio
 **Solution**: Sort detections spatially before assigning IDs
 
 ```python
-@staticmethod
-def _spatial_sort(bboxes: List[List[float]]) -> List[List[float]]:
-    """
-    Sort bounding boxes top-to-bottom, then left-to-right.
-
-    Ensures predictable coin numbering within a single image.
-    """
-    def sort_key(bbox: List[float]) -> Tuple[float, float]:
-        x, y, w, h = bbox
-        center_y = y + h / 2
-        center_x = x + w / 2
-        return (center_y, center_x)  # Primary: y, Secondary: x
-
-    return sorted(bboxes, key=sort_key)
+# Inline sorting in process_image() using bbox top-left corner
+detections.sort(key=lambda x: x['sort_key'])  # sort_key = (y1, x1)
 ```
 
 **Why Top-to-Bottom, Left-to-Right**:

@@ -358,19 +358,22 @@ SQLModel abstracts dialect differences.
 
 **Example**:
 ```python
-# Service layer
-if not model_path.exists():
-    raise ModelNotAvailableError(f"Model not found: {model_path}")
+# Service layer (returns None + caches error on failure)
+def get_detector() -> Optional[DetectionService]:
+    if not settings.MODEL_PATH.exists():
+        _model_load_error = f"Model not found at {settings.MODEL_PATH}"
+        return None
 
-# API layer
-try:
-    detector = get_detector()
-except ModelNotAvailableError as e:
-    raise HTTPException(status_code=503, detail=str(e))
+# API layer (translates None to HTTP 503)
+detector = get_detector()
+if detector is None:
+    model_status = get_model_status()
+    raise HTTPException(status_code=503, detail=model_status.get("error"))
 ```
 
 **HTTP Status Codes Used**:
 - `200`: Success
+- `400`: Bad request (invalid file type)
 - `404`: Resource not found (image ID, coin ID)
 - `500`: Internal server error (detection crashed)
 - `503`: Service unavailable (model not loaded)
@@ -379,26 +382,29 @@ except ModelNotAvailableError as e:
 
 **Centralized Settings** (`app/core/config.py`):
 ```python
-class Settings(BaseSettings):
-    MODEL_PATH: Path = MODELS_DIR / "yolov8n-coin-finetuned.pt"
+class Settings:
+    MODEL_PATH: Path
     CONFIDENCE_THRESHOLD: float = 0.25
-    IOU_THRESHOLD: float = 0.45
-    UPLOAD_DIR: Path = BASE_DIR / "data" / "uploads"
-    DATABASE_URL: str = "sqlite:///data/database.db"
+    SLANT_THRESHOLD_LOW: float = 0.8
+    SLANT_THRESHOLD_HIGH: float = 1.2
+    UPLOAD_DIR: Path = DATA_DIR / "uploads"
 
-    class Config:
-        env_file = ".env"
+    def __init__(self):
+        default_model_path = self.MODELS_DIR / "yolov8n-coin-finetuned.pt"
+        self.MODEL_PATH = Path(os.getenv("MODEL_PATH", str(default_model_path)))
 ```
+
+Cached via `@lru_cache` for singleton access.
 
 **Environment Override**:
 ```bash
 export MODEL_PATH=/custom/model.pt
-export CONFIDENCE_THRESHOLD=0.3
+export DATA_DIR=/custom/data
 ```
 
-**Why Pydantic BaseSettings**:
-- Type validation
-- Automatic `.env` loading
+**Why this approach**:
+- Cached singleton via `@lru_cache`
+- Environment variable overrides via `os.getenv()`
 - Default values with override capability
 
 ---
@@ -410,15 +416,10 @@ export CONFIDENCE_THRESHOLD=0.3
 **Example: Geometry Module**
 ```python
 # Pure function: No side effects, deterministic
-def fit_ellipse(bbox: List[float]) -> Tuple[float, float, float]:
-    """
-    Args: bbox [x, y, w, h]
-    Returns: (center_x, center_y, radius)
-    """
-    center_x = bbox[0] + bbox[2] / 2
-    center_y = bbox[1] + bbox[3] / 2
-    radius = min(bbox[2], bbox[3]) / 2 #proxy radius
-    return center_x, center_y, radius
+@staticmethod
+def calculate_radius(width: float, height: float) -> float:
+    """Max-dimension heuristic to account for slant."""
+    return max(width, height) / 2.0
 ```
 
 **Testable without**:
@@ -486,13 +487,13 @@ RUN uv export --frozen --no-hashes -o /tmp/requirements.txt && \
 
 ```python
 @router.get("/health")
-async def health_check():
+def health_check():
+    model_status = get_model_status()
     return {
         "status": "healthy",
-        "model": {
-            "available": get_detector() is not None,
-            "status": get_model_status()["status"]
-        }
+        "service": "Coin Detection",
+        "version": "1.0",
+        "model": model_status
     }
 ```
 

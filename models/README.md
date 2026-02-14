@@ -12,7 +12,7 @@ This directory contains **production-ready models only** - models that are deplo
 
 ### Model Metadata
 
-- **Training Date**: 2024-02-13
+- **Training Date**: 2026-02-13
 - **Base Model**: YOLOv8n (nano)
 - **Fine-tuning Dataset**: 191 images, 521 coin annotations
 - **Input Size**: 640x640
