@@ -1,146 +1,29 @@
-# Circular Object Detection Challenge (Coins)
+# Coin Detection API
 
-> separating circular objects (coins) in foreground images.
+> Production-ready REST API for detecting and identifying circular objects (coins) in images with geometric analysis. The system combines YOLO-based object detection with deterministic geometric post-processing to derive precise coin properties without pixel-level-segmenation training.
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-green.svg)](https://fastapi.tiangolo.com)
 [![Docker](https://img.shields.io/badge/Docker-ready-blue.svg)](https://www.docker.com/)
+[![Coverage](https://img.shields.io/badge/coverage-98%25-brightgreen.svg)](docs/07_testing_and_quality.md)
 
 ---
 
-## Table of Contents
+## What This Does
 
-- [Overview](#overview)
-- [Problem Analysis & Decision Matrix](#problem-analysis--decision-matrix)
-- [Architecture](#architecture)
-- [Quick Start](#quick-start)
-- [API Reference](#api-reference)
-- [Development](#development)
-- [Evaluation Strategy](#evaluation-strategy)
-- [Future Roadmap](#future-roadmap)
+Upload an image containing coins → Get bounding boxes, centroids, radii, and segmentation masks for each coin.
 
----
+**Functional Features**:
+- Multi-instance object detection (handles 1-14+ coins per image)
+- Unique persistent identifiers for each detected coin
+- Geometric properties: bbox, centroid (ellipse center), radius
+- Segmentation masks via elliptical fitting (handles slanted coins)
+- Visualization endpoint with transparent mask overlay
 
-## Overview
-
-This solution addresses the challenge of **separating circular objects (coins) in foreground images** with the following capabilities:
-
-- ✅ **Image upload** with persistent storage
-- ✅ **Unique identifier assignment** for each detected coin
-- ✅ **Bounding box, centroid, and radius** retrieval per coin
-- ✅ **Mask generation** via geometric post-processing (elliptical fit)
-- ✅ **Visualization endpoint** displaying mask overlay on original image
-- ✅ **Containerized solution** ready for deployment
-
----
-
-## Problem Analysis & Decision Matrix
-
-> This section documents the analytical approach taken to understand the problem and design the solution.
-
-### Dataset Exploration Summary
-
-| Metric | Value |
-|--------|-------|
-| Total images | 191 |
-| Total annotations | 521 |
-| Annotations per image | 2.73 (avg), 2 (median) |
-| Max objects per image | 14 |
-| Min objects per image | 1 |
-| Resolution range | 194×194 to 2048×2048 px |
-
-### Key Observations
-
-| Aspect | Observation | Impact on Design |
-|--------|-------------|------------------|
-| **Annotation Format** | COCO-style with bounding boxes only; all segmentation arrays empty | Cannot train supervised instance segmentation directly |
-| **Coin Shape** | ~8% of coins have aspect ratio outside 0.8-1.2 (slanted/tilted) | Rigid circular masks would fail; elliptical fitting required |
-| **Scene Complexity** | Varied backgrounds, lighting, overlapping coins | Robust detection model needed |
-| **Multi-instance** | 1-14 coins per image | Object detection framing handles this natively |
-
-### Visual Dataset Characteristics
-
-| Aspect | Observation |
-|--------|-------------|
-| **Background & Lighting** | Varied: plain, textured, cluttered; diverse lighting with shadows/glare |
-| **Coin Characteristics** | Multiple denominations, varied sizes, reflective surfaces |
-| **Scene Composition** | 1-14 coins, partial occlusion, scattered spatial distribution |
-| **Quality Challenges** | Motion blur possible, boundary occlusion, scale variation |
-
-### Design Decision Matrix
-
-| Challenge | Options Considered | Decision | Rationale |
-|-----------|-------------------|----------|-----------|
-| **No segmentation GT** | (A) Train Mask R-CNN with pseudo-masks<br>(B) Use detection + geometric post-processing<br>(C) Classical CV (Hough circles) | **B** | Geometric masks from bbox are accurate for circular/elliptical objects; no training overhead |
-| **Slanted coins (~8%)** | (A) Circular mask (radius = max dimension)<br>(B) Elliptical mask fitted to bbox | **B** | Ellipse preserves aspect ratio, handles tilt naturally |
-| **Mask IoU evaluation** | (A) Pixel-wise IoU<br>(B) Detection mAP + counting accuracy | **B** | No pixel-level GT available; detection mAP is standard; counting accuracy is practical |
-| **Detection model** | (A) Train from scratch<br>(B) Fine-tune YOLO<br>(C) Use pre-trained YOLO | **C → B** | Start with pre-trained for MVP; fine-tune for production accuracy |
-| **Overlapping coins** | (A) Instance segmentation<br>(B) Object detection (separate bboxes) | **B** | Detection naturally handles overlap by predicting separate boxes |
-
-### Problem Reframing
-
-```mermaid
-flowchart LR
-    A["Task: Multi-Instance<br/>Object Detection"] --> B["BBox Prediction<br/>(YOLO)"]
-    B --> C["Geometric Post-Processing"]
-    C --> D["Elliptical Mask<br/>(fitted to bbox)"]
-    D --> E["Centroid, Radius,<br/>Slant Detection"]
-```
-
-**Key Insight**: By framing this as object detection + geometric post-processing, we:
-1. Leverage robust pre-trained detectors (YOLO)
-2. Handle overlapping coins naturally (separate detections)
-3. Generate accurate masks without pixel-level supervision
-4. Produce consistent, deterministic outputs
-
----
-
-## Architecture
-
-```
-coin-detection-api/
-├── app/
-│   ├── api/              # FastAPI routes
-│   │   └── routes.py     # Endpoint definitions
-│   ├── core/             # Configuration & database
-│   │   ├── config.py     # Centralized settings
-│   │   └── db.py         # SQLite + SQLModel
-│   ├── db/               # Database models
-│   │   └── models.py     # Image, Coin tables
-│   └── services/         # Business logic
-│       ├── detection.py  # YOLO inference
-│       └── geometry.py   # Ellipse fitting, mask generation
-├── artifacts/
-│   └── models/           # YOLO weights
-├── data/                 # Runtime data (gitignored)
-│   └── uploads/          # Uploaded images
-└── tests/                # Unit tests
-```
-
-### Data Flow
-
-```mermaid
-sequenceDiagram
-    participant Client
-    participant API
-    participant Detection
-    participant Geometry
-    participant DB
-
-    Client->>API: POST /images (upload)
-    API->>Detection: process_image()
-    Detection->>Detection: YOLO inference
-    Detection->>Geometry: analyze_detection()
-    Geometry-->>Detection: center, radius, is_slanted
-    Detection-->>API: List[Coin]
-    API->>DB: persist Image + Coins
-    API-->>Client: ImageRead response
-
-    Client->>API: GET /images/{id}/render
-    API->>DB: fetch Image + Coins
-    API->>Geometry: generate_mask() per coin
-    API-->>Client: PNG with mask overlay
-```
+**Engineering Quality**:
+- Structured JSON logging
+- Health checks
+- 98% test coverage with unit + integration tests
 
 ---
 
@@ -149,7 +32,9 @@ sequenceDiagram
 ### Docker (Recommended)
 
 ```bash
-# Build and run
+# Clone and run
+git clone <repo-url>
+cd coin-detection-challenge
 docker-compose up --build
 
 # API available at http://localhost:8000
@@ -159,40 +44,39 @@ docker-compose up --build
 ### Local Development
 
 ```bash
-# Create virtual environment
+# Setup environment
 python -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 
 # Install dependencies
 make dev
 
 # Run API
-make run
+make run  # Starts at http://localhost:8000
 ```
+
+**System Requirements**:
+- Python 3.10+
+- ~200MB RAM (model + runtime)
+- Typical inference latency(CPU) ~50-150ms per image (depends on image size)
 
 ---
 
-## API Reference
+## API Usage
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/v1/images` | Upload image, triggers detection |
-| `GET` | `/api/v1/images/{id}` | Get image details with coin list |
-| `GET` | `/api/v1/coins/{id}` | Get specific coin details (bbox, centroid, radius) |
-| `GET` | `/api/v1/images/{id}/render` | Visualize masks overlaid on image |
-| `GET` | `/api/v1/health` | Health check |
-
-### Example Usage
+### Upload & Detect
 
 ```bash
-# Upload image
 curl -X POST "http://localhost:8000/api/v1/images" \
   -F "file=@coin_image.jpg"
+```
 
-# Response:
+**Response**:
+```json
 {
   "id": "a1b2c3d4",
   "filename": "a1b2c3d4.jpg",
+  "uploaded_at": "2026-02-13T10:30:45Z",
   "coins": [
     {
       "id": "a1b2c3d4_coin_001",
@@ -203,84 +87,163 @@ curl -X POST "http://localhost:8000/api/v1/images" \
       "bbox_x": 105.5,
       "bbox_y": 155.3,
       "bbox_w": 90.0,
-      "bbox_h": 90.0
+      "bbox_h": 90.0,
+      "confidence": 0.95
     }
   ]
 }
-
-# Get rendered visualization
-curl "http://localhost:8000/api/v1/images/a1b2c3d4/render" --output render.png
 ```
 
----
-
-## Development
-
-### Available Commands
+### Retrieve Image Details
 
 ```bash
-make help         # Show all commands
+curl "http://localhost:8000/api/v1/images/a1b2c3d4"
+```
+
+### Get Coin Details
+
+```bash
+curl "http://localhost:8000/api/v1/coins/a1b2c3d4_coin_001"
+```
+
+### Visualize Detections
+
+```bash
+curl "http://localhost:8000/api/v1/images/a1b2c3d4/render" \
+  --output visualization.png
+```
+
+**Output**: Original image with transparent red masks + green bboxes + coin IDs
+
+### Health Check
+
+```bash
+curl "http://localhost:8000/api/v1/health"
+```
+
+**Response**:
+```json
+{
+  "status": "healthy",
+  "model": {
+    "available": true,
+    "status": "loaded"
+  }
+}
+```
+
+**Full API Reference**: OpenAPI docs at `/docs` (interactive, includes examples)
+
+---
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/v1/images` | Upload image, triggers detection |
+| `GET` | `/api/v1/images/{id}` | Get image details with all coins |
+| `GET` | `/api/v1/coins/{id}` | Get specific coin properties |
+| `GET` | `/api/v1/images/{id}/render` | Visualize masks on image |
+| `GET` | `/api/v1/health` | Health check (model status) |
+
+---
+
+## Development Commands
+
+```bash
+make help         # Show all available commands
 make dev          # Install dev dependencies
-make test         # Run tests
-make test-cov     # Run tests with coverage
-make lint         # Check code style
-make format       # Auto-format code
-make docker-up    # Start containers
-make docker-down  # Stop containers
-```
-
-### Project Structure
-
-- **`app/core/config.py`**: Centralized configuration via environment variables
-- **`app/services/detection.py`**: YOLO model wrapper, singleton pattern
-- **`app/services/geometry.py`**: Pure geometric calculations (testable, no ML dependencies)
-- **`app/db/models.py`**: SQLModel definitions with relationships
-
----
-
-## Evaluation Strategy
-
-Given the dataset constraints (bounding boxes only, no pixel-level masks), the evaluation approach focuses on:
-
-### Primary Metrics
-
-| Metric | Description | Target |
-|--------|-------------|--------|
-| **mAP@0.5:0.95** | COCO-style detection mAP | Standard benchmark |
-| **Counting Accuracy** | % images with correct coin count | High priority for practical use |
-| **Inference Time** | ms per image | < 500ms for production |
-
-### Why Not Pixel-Level IoU?
-
-- No ground truth masks available in dataset
-- Geometric masks are deterministic given bbox → mask quality depends entirely on detection quality
-- Detection mAP directly correlates with final output quality
-
-### Planned Evaluation Workflow
-
-```mermaid
-flowchart TD
-    A[Dataset] --> B[Train/Val/Test Split]
-    B --> C[Baseline: Pre-trained YOLO]
-    C --> D{mAP acceptable?}
-    D -->|No| E[Fine-tune YOLO]
-    E --> D
-    D -->|Yes| F[Compare with Classical CV]
-    F --> G[Final Model Selection]
+make test         # Run tests (98% coverage)
+make test-cov     # Run tests with coverage report
+make lint         # Check code style (ruff)
+make format       # Auto-format code (black)
+make docker-up    # Start Docker containers
+make docker-down  # Stop Docker containers
 ```
 
 ---
 
-## Next Planned Steps
+## Model Information
 
-- [ ] **Metrics module**: Implement mAP calculation and counting accuracy
-- [ ] **Train/test split**: Proper dataset partitioning for evaluation
-- [ ] **Baseline evaluation**: Assess pre-trained YOLO performance
-- [ ] **Fine-tuning**: YOLO fine-tuning on coin dataset
-- [ ] **Classical CV comparison**: Hough circles as baseline
-- [ ] **Structured logging**: Production-grade observability
-- [ ] **Pluggable architecture**: Swappable detectors and metrics
-- [ ] **API hardening**: Rate limiting, input validation, error handling
+**Current Production Model**: `yolov8n-coin-finetuned.pt`
+- Base: YOLOv8 Nano (3.2M parameters, 6.0 MB)
+- Task: Single-class object detection (coin)
+- Performance: mAP@0.5:0.95 0.73, Counting accuracy 84.6% (on test set)
+- Inference: ~50-150ms (CPU), Varies with image size
+
+See eval report [`training/artifacts/evaluation/2026-02-13T17-30-19Z/evaluation_summary.json`](training/artifacts/evaluation/2026-02-13T17-30-19Z/evaluation_summary.json)
+
+**See**: [`models/README.md`](models/README.md) for model card and metadata
+
+---
+
+## Project Structure
+
+```
+coin-detection-challenge/
+├── app/                    # Application code
+│   ├── api/                # FastAPI routes
+│   ├── services/           # Detection & geometry logic
+│   ├── core/               # Config, DB, logging
+│   └── middleware/         # Request logging
+├── models/                 # Production models only
+├── training/               # Training pipeline (separate)
+├── evaluation/             # Evaluation framework
+├── tests/                  # Unit + integration tests (98% coverage)
+├── docs/                   # Engineering documentation →
+└── Dockerfile              # Production container
+```
+
+---
+
+## Technical Documentation
+
+> **For implementation details, design rationale, and engineering insights**, see [`/docs`](docs/).
+
+### Documentation Structure
+
+📂 **Engineering Narrative** (`/docs/` — 8 documents)
+
+1. **[Problem Understanding](docs/01_problem_understanding.md)**: Dataset analysis, constraints, assumptions, trade-offs
+2. **[Architecture Overview](docs/02_architecture_overview.md)**: System design, components, data flow, technology stack
+3. **[Detection and Geometry](docs/03_detection_and_geometry.md)**: YOLO pipeline, ellipse fitting, mask generation, edge cases
+4. **[Training Pipeline](docs/04_training_pipeline.md)**: Dataset management, hyperparameters, experiment tracking, model export
+5. **[Evaluation Framework](docs/05_evaluation_framework.md)**: Metrics rationale, proxy validation, failure bucketing, schema design
+6. **[MLOps and Deployment](docs/06_mlops_and_deployment.md)**: Containerization, observability, configuration, production path
+7. **[Testing and Quality](docs/07_testing_and_quality.md)**: 98% coverage, unit vs. integration, fixtures, CI/CD
+8. **[Design Decisions (ADRs)](docs/08_design_decisions.md)**: Key architectural choices with context and trade-offs
+
+📄 **Domain-Specific READMEs**
+
+- **[`training/README.md`](training/README.md)**: Training workflow, fine-tuning, data split strategy
+- **[`models/README.md`](models/README.md)**: Model card, metadata, usage, versioning
+
+📊 **Evaluation Deep Dive**
+
+- **[`evaluation/eval_strategy.md`](evaluation/eval_strategy.md)**: Metric selection philosophy, schema design, proxy metrics rationale
+
+---
+
+## Configuration
+
+**Environment Variables** (optional overrides):
+
+```bash
+# Model configuration
+MODEL_PATH=models/yolov8n-coin-finetuned.pt
+CONFIDENCE_THRESHOLD=0.25
+IOU_THRESHOLD=0.45
+
+# Storage
+UPLOAD_DIR=data/uploads
+DATABASE_URL=sqlite:///data/database.db  # Or postgresql://...
+
+# Logging
+LOG_LEVEL=INFO
+LOG_FORMAT=json
+```
+
+**See**: [`app/core/config.py`](app/core/config.py) for all settings
 
 ---
 
@@ -292,4 +255,6 @@ MIT
 
 ## Acknowledgments
 
-Built as part of a technical assessment challenge 1
+Built as part of technical assessment challenge 1
+
+For detailed design rationale and trade-off analysis, see [Design Decisions (ADRs)](docs/08_design_decisions.md).

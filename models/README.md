@@ -1,6 +1,6 @@
 # Production Models
 
-This directory contains **production-ready models only** - models that are deployed with the application.
+This directory contains **production-ready models only** - models that are deployed with the application. This can be replaced with model registry logic in real scenarios.
 
 ## Current Model
 
@@ -50,7 +50,5 @@ To deploy a new model:
 
 ### Important Notes
 
-- **DO NOT** commit model files to git if > 100MB (use Git LFS or external storage)
-- **DO NOT** include training artifacts or experiments here
 - This directory is copied into Docker images during build
 - Model files should be versioned externally (S3, model registry, etc.)
