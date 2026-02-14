@@ -57,6 +57,9 @@ async def upload_image(
         },
     )
 
+    # Ensure upload directory exists (defensive — handles bind-mount race conditions)
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
     # Save the file to disk
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)

@@ -9,7 +9,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      # Persist uploaded images and SQLite database
+      # Persist uploaded images and SQLite database across restarts
       - ./data:/code/data
     environment:
       - PYTHONUNBUFFERED=1
