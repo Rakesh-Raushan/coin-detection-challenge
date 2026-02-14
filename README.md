@@ -45,8 +45,8 @@ docker-compose up --build
 
 ```bash
 # Setup environment
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
+# Install uv (if not installed)
+# https://docs.astral.sh/uv/
 
 # Install dependencies
 make dev
