@@ -65,21 +65,21 @@ typecheck:
 # Docker
 # =============================================================================
 docker-build:
-    docker-compose build
+    docker compose build
 
 docker-up:
-    docker-compose up -d
+    docker compose up -d
 
 docker-down:
-    docker-compose down
+    docker compose down
 
 docker-logs:
-    docker-compose logs -f
+    docker compose logs -f
 
 docker-rebuild:
-    docker-compose down
-    docker-compose build --no-cache
-    docker-compose up -d
+    docker compose down
+    docker compose build --no-cache
+    docker compose up -d
 
 # =============================================================================
 # Cleanup
