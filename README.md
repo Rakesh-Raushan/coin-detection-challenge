@@ -43,7 +43,7 @@ Upload an image containing coins → Get bounding boxes, centroids, radii, and s
 # Clone and run
 git clone https://github.com/Rakesh-Raushan/coin-detection-challenge .
 cd coin-detection-challenge
-docker-compose up --build
+docker compose up --build
 
 # API available at http://localhost:8000
 # Docs at http://localhost:8000/docs
