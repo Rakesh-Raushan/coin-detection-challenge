@@ -3,6 +3,7 @@
 > Production-ready REST API for detecting and identifying circular objects (coins) in images with geometric analysis. The system combines YOLO-based object detection with deterministic geometric post-processing to derive precise coin properties without pixel-level-segmenation training.
 
 [![CI — Build & Smoke Test](https://github.com/Rakesh-Raushan/coin-detection-challenge/actions/workflows/ci.yml/badge.svg)](https://github.com/Rakesh-Raushan/coin-detection-challenge/actions/workflows/ci.yml)
+[![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://perpetualquest-Coin-Detection-Challenge.hf.space/docs)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-green.svg)](https://fastapi.tiangolo.com)
 [![Docker](https://img.shields.io/badge/Docker-ready-blue.svg)](https://www.docker.com/)
@@ -30,11 +31,17 @@ Upload an image containing coins → Get bounding boxes, centroids, radii, and s
 
 ## Quick Start
 
+### Live Demo (No Setup Required)
+
+> **[Try the API →](https://perpetualquest-coin-detection-challenge.hf.space/docs)**
+>
+> Interactive Swagger UI hosted on Hugging Face Spaces. No installation needed — test all endpoints directly in the browser.
+
 ### Docker (Recommended)
 
 ```bash
 # Clone and run
-git clone <repo-url>
+git clone https://github.com/Rakesh-Raushan/coin-detection-challenge .
 cd coin-detection-challenge
 docker-compose up --build
 
