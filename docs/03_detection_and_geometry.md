@@ -1,6 +1,6 @@
 # 03. Detection and Geometry
 
-> **Approach**: Outcome and valed based approach to problem by grounding it to realities of data.
+> **Approach**: Outcome and value based approach to problem by grounding it to realities of data.
 
 ---
 
@@ -379,7 +379,6 @@ assert 0.99 < radius_ratio < 1.01  # Should match exactly
 
 ### Detection Quality Metrics
 
-Evaluated separately (see `05_evaluation_framework.md`):
 - mAP@0.5:0.95 (localization quality)
 - Counting accuracy (practical metric)
 - Failure bucketing (severe/moderate/good/excellent)
