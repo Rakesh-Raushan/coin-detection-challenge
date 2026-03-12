@@ -1,0 +1,1172 @@
+<!DOCTYPE html><html class="no-js" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width,initial-scale=1" name="viewport">
+<meta content="A deep-dive into computer vision pipelines for real-time coin detection, geometric analysis, and classification." name="description">
+<meta content="Your Team" name="author">
+<link href=".." rel="prev">
+<link href="../02_architecture_overview/" rel="next">
+<link href="../assets/images/favicon.png" rel="icon">
+<meta content="mkdocs-1.6.1, mkdocs-material-9.7.5" name="generator">
+<title>Problem Understanding - Coin Detection Challenge</title>
+<link href="../assets/stylesheets/main.484c7ddc.min.css" rel="stylesheet">
+<link href="../assets/stylesheets/palette.ab4e12ef.min.css" rel="stylesheet">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css?family=DM+Sans:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet">
+<style>:root{--md-text-font:"DM Sans";--md-code-font:"JetBrains Mono"}</style>
+<link href="../stylesheets/extra.css" rel="stylesheet">
+<script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+<link href="../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+<body data-md-color-accent="custom" data-md-color-primary="custom" data-md-color-scheme="slate" dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox">
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox">
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#01-problem-understanding">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="Coin Detection Challenge" class="md-header__button md-logo" data-md-component="logo" href=".." title="Coin Detection Challenge">
+<img alt="logo" src="../logo.png">
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            Coin Detection Challenge
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Problem Understanding
+            
+          </span>
+</div>
+</div>
+</div>
+<form class="md-header__option" data-md-component="palette">
+<input aria-label="Switch to light mode" class="md-option" data-md-color-accent="custom" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-primary="custom" data-md-color-scheme="slate" id="__palette_0" name="__palette" type="radio">
+<label class="md-header__button md-icon" for="__palette_1" hidden="" title="Switch to light mode">
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"></path></svg>
+</label>
+<input aria-label="Switch to dark mode" class="md-option" data-md-color-accent="custom" data-md-color-media="(prefers-color-scheme: light)" data-md-color-primary="custom" data-md-color-scheme="default" id="__palette_1" name="__palette" type="radio">
+<label class="md-header__button md-icon" for="__palette_0" hidden="" title="Switch to dark mode">
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"></path></svg>
+</label>
+</form>
+<script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text">
+<label class="md-search__icon md-icon" for="__search">
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<a aria-label="Share" class="md-search__icon md-icon" data-clipboard="" data-clipboard-text="" data-md-component="search-share" href="javascript:void(0)" tabindex="-1" title="Share">
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"></path></svg>
+</a>
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+</button>
+</nav>
+<div class="md-search__suggest" data-md-component="search-suggest"></div>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/your-org/coin-detection" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+</div>
+<div class="md-source__repository">
+    coin-detection
+  </div>
+</a>
+</div>
+</nav>
+<nav aria-label="Tabs" class="md-tabs" data-md-component="tabs">
+<div class="md-grid">
+<ul class="md-tabs__list">
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="..">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+</li>
+<li class="md-tabs__item md-tabs__item--active">
+<a class="md-tabs__link" href="./">
+        
+  
+  
+    
+  
+  Problem Understanding
+
+      </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../02_architecture_overview/">
+        
+  
+  
+    
+  
+  Architecture Overview
+
+      </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../03_detection_and_geometry/">
+        
+  
+  
+    
+  
+  Detection &amp; Geometry
+
+      </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../training/">
+        
+  
+  
+    
+  
+  Training
+
+      </a>
+</li>
+</ul>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary md-nav--lifted" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="Coin Detection Challenge" class="md-nav__button md-logo" data-md-component="logo" href=".." title="Coin Detection Challenge">
+<img alt="logo" src="../logo.png">
+</a>
+    Coin Detection Challenge
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/your-org/coin-detection" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+</div>
+<div class="md-source__repository">
+    coin-detection
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="..">
+<span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--active">
+<input class="md-nav__toggle md-toggle" id="__toc" type="checkbox">
+<label class="md-nav__link md-nav__link--active" for="__toc">
+<span class="md-ellipsis">
+    
+  
+    Problem Understanding
+  
+
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<a class="md-nav__link md-nav__link--active" href="./">
+<span class="md-ellipsis">
+    
+  
+    Problem Understanding
+  
+
+    
+  </span>
+</a>
+<nav aria-label="On this page" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-requirements-analysis">
+<span class="md-ellipsis">
+      
+        1. Requirements Analysis
+      
+    </span>
+</a>
+<nav aria-label="1. Requirements Analysis" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#core-requirements">
+<span class="md-ellipsis">
+      
+        Core Requirements
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#constraints-discovered">
+<span class="md-ellipsis">
+      
+        Constraints Discovered
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-dataset-exploration">
+<span class="md-ellipsis">
+      
+        2. Dataset Exploration
+      
+    </span>
+</a>
+<nav aria-label="2. Dataset Exploration" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#dataset-statistics">
+<span class="md-ellipsis">
+      
+        Dataset Statistics
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#annotation-format-analysis">
+<span class="md-ellipsis">
+      
+        Annotation Format Analysis
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#shape-distribution">
+<span class="md-ellipsis">
+      
+        Shape Distribution
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#visual-characteristics-manually-observed-in-images">
+<span class="md-ellipsis">
+      
+        Visual Characteristics (Manually observed in images)
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-problem-reframing">
+<span class="md-ellipsis">
+      
+        3. Problem Reframing
+      
+    </span>
+</a>
+<nav aria-label="3. Problem Reframing" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#initial-framing-vs-actual-problem">
+<span class="md-ellipsis">
+      
+        Initial Framing vs. Actual Problem
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#reformulated-problem">
+<span class="md-ellipsis">
+      
+        Reformulated Problem
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-assumptions-validation">
+<span class="md-ellipsis">
+      
+        4. Assumptions &amp; Validation
+      
+    </span>
+</a>
+<nav aria-label="4. Assumptions &amp; Validation" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#assumption-1-coins-are-approximately-circularelliptical">
+<span class="md-ellipsis">
+      
+        Assumption 1: Coins are approximately circular/elliptical
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#assumption-2-bounding-box-quality-is-sufficient">
+<span class="md-ellipsis">
+      
+        Assumption 2: Bounding box quality is sufficient
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#assumption-3-geometric-masks-approximate-true-masks-well">
+<span class="md-ellipsis">
+      
+        Assumption 3: Geometric masks approximate true masks well
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#assumption-4-pre-trained-yolo-transfers-to-coins">
+<span class="md-ellipsis">
+      
+        Assumption 4: Pre-trained YOLO transfers to coins
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-trade-offs-accepted">
+<span class="md-ellipsis">
+      
+        5. Trade-Offs Accepted
+      
+    </span>
+</a>
+<nav aria-label="5. Trade-Offs Accepted" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#trade-off-1-no-pixel-perfect-masks">
+<span class="md-ellipsis">
+      
+        Trade-Off 1: No Pixel-Perfect Masks
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#trade-off-2-fine-tuning-vs-training-from-scratch">
+<span class="md-ellipsis">
+      
+        Trade-Off 2: Fine-Tuning vs. Training from Scratch
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#trade-off-3-detection-post-processing-vs-end-to-end-segmentation">
+<span class="md-ellipsis">
+      
+        Trade-Off 3: Detection + Post-Processing vs. End-to-End Segmentation
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#trade-off-4-evaluation-without-ground-truth-geometry">
+<span class="md-ellipsis">
+      
+        Trade-Off 4: Evaluation Without Ground Truth Geometry
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#6-risk-assessment">
+<span class="md-ellipsis">
+      
+        6. Risk Assessment
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#7-success-criteria">
+<span class="md-ellipsis">
+      
+        7. Success Criteria
+      
+    </span>
+</a>
+<nav aria-label="7. Success Criteria" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#minimum-viable-product-mvp">
+<span class="md-ellipsis">
+      
+        Minimum Viable Product (MVP)
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#production-ready">
+<span class="md-ellipsis">
+      
+        Production-Ready
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#engineering-quality">
+<span class="md-ellipsis">
+      
+        Engineering Quality
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../02_architecture_overview/">
+<span class="md-ellipsis">
+    
+  
+    Architecture Overview
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../03_detection_and_geometry/">
+<span class="md-ellipsis">
+    
+  
+    Detection &amp; Geometry
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../training/">
+<span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="On this page" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-requirements-analysis">
+<span class="md-ellipsis">
+      
+        1. Requirements Analysis
+      
+    </span>
+</a>
+<nav aria-label="1. Requirements Analysis" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#core-requirements">
+<span class="md-ellipsis">
+      
+        Core Requirements
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#constraints-discovered">
+<span class="md-ellipsis">
+      
+        Constraints Discovered
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-dataset-exploration">
+<span class="md-ellipsis">
+      
+        2. Dataset Exploration
+      
+    </span>
+</a>
+<nav aria-label="2. Dataset Exploration" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#dataset-statistics">
+<span class="md-ellipsis">
+      
+        Dataset Statistics
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#annotation-format-analysis">
+<span class="md-ellipsis">
+      
+        Annotation Format Analysis
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#shape-distribution">
+<span class="md-ellipsis">
+      
+        Shape Distribution
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#visual-characteristics-manually-observed-in-images">
+<span class="md-ellipsis">
+      
+        Visual Characteristics (Manually observed in images)
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-problem-reframing">
+<span class="md-ellipsis">
+      
+        3. Problem Reframing
+      
+    </span>
+</a>
+<nav aria-label="3. Problem Reframing" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#initial-framing-vs-actual-problem">
+<span class="md-ellipsis">
+      
+        Initial Framing vs. Actual Problem
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#reformulated-problem">
+<span class="md-ellipsis">
+      
+        Reformulated Problem
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-assumptions-validation">
+<span class="md-ellipsis">
+      
+        4. Assumptions &amp; Validation
+      
+    </span>
+</a>
+<nav aria-label="4. Assumptions &amp; Validation" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#assumption-1-coins-are-approximately-circularelliptical">
+<span class="md-ellipsis">
+      
+        Assumption 1: Coins are approximately circular/elliptical
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#assumption-2-bounding-box-quality-is-sufficient">
+<span class="md-ellipsis">
+      
+        Assumption 2: Bounding box quality is sufficient
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#assumption-3-geometric-masks-approximate-true-masks-well">
+<span class="md-ellipsis">
+      
+        Assumption 3: Geometric masks approximate true masks well
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#assumption-4-pre-trained-yolo-transfers-to-coins">
+<span class="md-ellipsis">
+      
+        Assumption 4: Pre-trained YOLO transfers to coins
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-trade-offs-accepted">
+<span class="md-ellipsis">
+      
+        5. Trade-Offs Accepted
+      
+    </span>
+</a>
+<nav aria-label="5. Trade-Offs Accepted" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#trade-off-1-no-pixel-perfect-masks">
+<span class="md-ellipsis">
+      
+        Trade-Off 1: No Pixel-Perfect Masks
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#trade-off-2-fine-tuning-vs-training-from-scratch">
+<span class="md-ellipsis">
+      
+        Trade-Off 2: Fine-Tuning vs. Training from Scratch
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#trade-off-3-detection-post-processing-vs-end-to-end-segmentation">
+<span class="md-ellipsis">
+      
+        Trade-Off 3: Detection + Post-Processing vs. End-to-End Segmentation
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#trade-off-4-evaluation-without-ground-truth-geometry">
+<span class="md-ellipsis">
+      
+        Trade-Off 4: Evaluation Without Ground Truth Geometry
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#6-risk-assessment">
+<span class="md-ellipsis">
+      
+        6. Risk Assessment
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#7-success-criteria">
+<span class="md-ellipsis">
+      
+        7. Success Criteria
+      
+    </span>
+</a>
+<nav aria-label="7. Success Criteria" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#minimum-viable-product-mvp">
+<span class="md-ellipsis">
+      
+        Minimum Viable Product (MVP)
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#production-ready">
+<span class="md-ellipsis">
+      
+        Production-Ready
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#engineering-quality">
+<span class="md-ellipsis">
+      
+        Engineering Quality
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<a class="md-content__button md-icon" href="https://github.com/your-org/coin-detection/edit/main/docs/01_problem_understanding.md" rel="edit" title="Edit this page">
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75z"></path></svg>
+</a>
+<a class="md-content__button md-icon" href="https://github.com/your-org/coin-detection/raw/main/docs/01_problem_understanding.md" title="View source of this page">
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0 8a5 5 0 0 1-5-5 5 5 0 0 1 5-5 5 5 0 0 1 5 5 5 5 0 0 1-5 5m0-12.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5"></path></svg>
+</a>
+<h1 id="01-problem-understanding">01. Problem Understanding<a class="headerlink" href="#01-problem-understanding" title="Permanent link">¶</a></h1>
+<blockquote>
+<p><strong>One Line Summary</strong> </p>
+<p>This challenge appears to request instance segmentation. However, analysis of the dataset revealed that no ground truth masks are provided. Therefore, the problem was reframed as multi-instance object detection with deterministic geometric mask generation. This document explains the data analysis, assumptions, and architectural trade-offs that informed that decision.</p>
+</blockquote>
+<hr>
+<h2 id="1-requirements-analysis">1. Requirements Analysis<a class="headerlink" href="#1-requirements-analysis" title="Permanent link">¶</a></h2>
+<h3 id="core-requirements">Core Requirements<a class="headerlink" href="#core-requirements" title="Permanent link">¶</a></h3>
+<p><strong>Functional</strong>:
+- Accept image uploads containing circular objects (coins)
+- Detect all circular objects with unique identifiers
+- Provide geometric properties: bounding box, centroid, radius
+- Generate segmentation masks for each object
+- Visualize detections with mask overlay</p>
+<p><strong>Non-Functional</strong>:
+- Response time: &lt; 500ms per image for production
+- Accuracy: Reliable counting (critical for business use)
+- Scalability: Handle multi-instance scenes (1-14+ objects)
+- Deployment: Containerized, production-ready</p>
+<h3 id="constraints-discovered">Constraints Discovered<a class="headerlink" href="#constraints-discovered" title="Permanent link">¶</a></h3>
+<p><strong>Hard Constraints</strong>:
+- <strong>No ground truth masks</strong>: Dataset provides bounding boxes only
+- <strong>No segmentation labels</strong>: All <code>segmentation</code> arrays empty in COCO annotations
+- <strong>Small dataset</strong>: 191 images total (limits deep model training)</p>
+<p><strong>Soft Constraints</strong>:
+- Variable image resolution (194×194 to 2048×2048 px)
+- Diverse lighting and backgrounds
+- Potential occlusion and overlap</p>
+<hr>
+<h2 id="2-dataset-exploration">2. Dataset Exploration<a class="headerlink" href="#2-dataset-exploration" title="Permanent link">¶</a></h2>
+<h3 id="dataset-statistics">Dataset Statistics<a class="headerlink" href="#dataset-statistics" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Value</th>
+<th>Implication</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Total images</td>
+<td>191</td>
+<td>Small — fine-tuning preferred over train-from-scratch</td>
+</tr>
+<tr>
+<td>Total annotations</td>
+<td>521</td>
+<td>Average 2.73 coins/image</td>
+</tr>
+<tr>
+<td>Objects per image</td>
+<td>1–14 (median: 2)</td>
+<td>Multi-instance detection required</td>
+</tr>
+<tr>
+<td>Resolution range</td>
+<td>194×194 to 2048×2048</td>
+<td>Input normalization needed</td>
+</tr>
+</tbody>
+</table>
+<p><em>Area given is as per bounding box</em></p>
+<h3 id="annotation-format-analysis">Annotation Format Analysis<a class="headerlink" href="#annotation-format-analysis" title="Permanent link">¶</a></h3>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="p">{</span>
+</span><span id="__span-0-2"><a href="#__codelineno-0-2" id="__codelineno-0-2" name="__codelineno-0-2"></a><span class="w">  </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">123</span><span class="p">,</span>
+</span><span id="__span-0-3"><a href="#__codelineno-0-3" id="__codelineno-0-3" name="__codelineno-0-3"></a><span class="w">  </span><span class="nt">"image_id"</span><span class="p">:</span><span class="w"> </span><span class="mi">456</span><span class="p">,</span>
+</span><span id="__span-0-4"><a href="#__codelineno-0-4" id="__codelineno-0-4" name="__codelineno-0-4"></a><span class="w">  </span><span class="nt">"category_id"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+</span><span id="__span-0-5"><a href="#__codelineno-0-5" id="__codelineno-0-5" name="__codelineno-0-5"></a><span class="w">  </span><span class="nt">"bbox"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="err">x</span><span class="p">,</span><span class="w"> </span><span class="err">y</span><span class="p">,</span><span class="w"> </span><span class="err">wid</span><span class="kc">t</span><span class="err">h</span><span class="p">,</span><span class="w"> </span><span class="err">heigh</span><span class="kc">t</span><span class="p">],</span>
+</span><span id="__span-0-6"><a href="#__codelineno-0-6" id="__codelineno-0-6" name="__codelineno-0-6"></a><span class="w">  </span><span class="nt">"segmentation"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">  </span><span class="c1">// ← EMPTY</span>
+</span><span id="__span-0-7"><a href="#__codelineno-0-7" id="__codelineno-0-7" name="__codelineno-0-7"></a><span class="w">  </span><span class="nt">"area"</span><span class="p">:</span><span class="w"> </span><span class="mf">3421.5</span><span class="p">,</span>
+</span><span id="__span-0-8"><a href="#__codelineno-0-8" id="__codelineno-0-8" name="__codelineno-0-8"></a><span class="w">  </span><span class="nt">"iscrowd"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span>
+</span><span id="__span-0-9"><a href="#__codelineno-0-9" id="__codelineno-0-9" name="__codelineno-0-9"></a><span class="p">}</span>
+</span></code></pre></div>
+<p><strong>Critical Finding</strong>: All 521 annotations have empty <code>segmentation</code> arrays. This eliminates supervised instance segmentation as an option.</p>
+<h3 id="shape-distribution">Shape Distribution<a class="headerlink" href="#shape-distribution" title="Permanent link">¶</a></h3>
+<p>We analyzed bbox aspect ratios to understand coin orientation:</p>
+<table>
+<thead>
+<tr>
+<th>Aspect Ratio</th>
+<th>Percentage</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.8 – 1.2</td>
+<td>~92%</td>
+<td>Nearly circular (camera perpendicular)</td>
+</tr>
+<tr>
+<td>&lt; 0.8 or &gt; 1.2</td>
+<td>~8%</td>
+<td>Elliptical (slanted/tilted coins)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key Insight</strong>: Rigid circular masks would fail for ~8% of coins. Elliptical fitting is necessary.</p>
+<h3 id="visual-characteristics-manually-observed-in-images">Visual Characteristics (Manually observed in images)<a class="headerlink" href="#visual-characteristics-manually-observed-in-images" title="Permanent link">¶</a></h3>
+<p><strong>Background Complexity</strong>:
+- Plain surfaces, Textured surfaces evaluation, Cluttered backgrounds</p>
+<p><strong>Lighting Conditions</strong>:
+- Even lighting, Shadows present, Glare/reflections</p>
+<p><strong>Occlusion Patterns</strong>:
+- Isolated coins, Partial overlap, Boundary crop: 15%</p>
+<hr>
+<h2 id="3-problem-reframing">3. Problem Reframing<a class="headerlink" href="#3-problem-reframing" title="Permanent link">¶</a></h2>
+<h3 id="initial-framing-vs-actual-problem">Initial Framing vs. Actual Problem<a class="headerlink" href="#initial-framing-vs-actual-problem" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Initial Thoughts</th>
+<th>Reality</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>"This is a segmentation problem"</td>
+<td><strong>No</strong>: No pixel-level supervision available</td>
+</tr>
+<tr>
+<td>"Need to train instance segmentation"</td>
+<td><strong>No</strong>: 191 images insufficient for Mask R-CNN</td>
+</tr>
+<tr>
+<td>"Classical CV (Hough circles) might work"</td>
+<td><strong>Maybe</strong>: Worth benchmarking (if time permits), but limited by slant/overlap</td>
+</tr>
+<tr>
+<td>"This is object detection + geometry"</td>
+<td><strong>Yes</strong>: Bounding boxes provided; masks derivable geometrically</td>
+</tr>
+</tbody>
+</table>
+<h3 id="reformulated-problem">Reformulated Problem<a class="headerlink" href="#reformulated-problem" title="Permanent link">¶</a></h3>
+<pre class="mermaid"><code>flowchart TD
+    A[Original: Instance Segmentation] --&gt; B{Data Available?}
+    B --&gt;|No masks| C[Reframe: Object Detection]
+    C --&gt; D[Detect Objects: YOLO]
+    D --&gt; E[Post-Process: Geometric Masks]
+    E --&gt; F[Ellipse Fitting]
+    F --&gt; G[Output: Masks + Geometry]</code></pre>
+<p><strong>New Problem Statement</strong>:</p>
+<blockquote>
+<p>Given bounding box supervision, perform <strong>multi-instance object detection</strong> and derive segmentation masks through <strong>geometric post-processing</strong> (ellipse fitting).</p>
+</blockquote>
+<hr>
+<h2 id="4-assumptions-validation">4. Assumptions &amp; Validation<a class="headerlink" href="#4-assumptions-validation" title="Permanent link">¶</a></h2>
+<h3 id="assumption-1-coins-are-approximately-circularelliptical">Assumption 1: Coins are approximately circular/elliptical<a class="headerlink" href="#assumption-1-coins-are-approximately-circularelliptical" title="Permanent link">¶</a></h3>
+<p><strong>Validation</strong>: Analyzed bbox dimensions across 521 annotations
+- Near-circular detections: 55%
+- Moderately+highly slanted: 45% (showing non-circular aspect ratios)</p>
+<p><strong>Conclusion</strong>: Valid assumption; ellipse model handles all cases naturally</p>
+<h3 id="assumption-2-bounding-box-quality-is-sufficient">Assumption 2: Bounding box quality is sufficient<a class="headerlink" href="#assumption-2-bounding-box-quality-is-sufficient" title="Permanent link">¶</a></h3>
+<p><strong>Observation</strong>: COCO-format bounding boxes appear consistently tight-fitting visually
+- Most annotations closely bound the coin regions
+- Minimal padding observed in sample images
+- Suitable for geometric mask derivation</p>
+<p><strong>Conclusion</strong>: Bbox annotations are high quality; safe to derive geometry</p>
+<h3 id="assumption-3-geometric-masks-approximate-true-masks-well">Assumption 3: Geometric masks approximate true masks well<a class="headerlink" href="#assumption-3-geometric-masks-approximate-true-masks-well" title="Permanent link">¶</a></h3>
+<p><strong>Validation</strong>: For circular/elliptical objects, analytical ellipse fit from bounding box provides tight bounds
+- Ellipse degenerates to circle when width equals height (handles both cases)
+- Tight fit minimizes mask overspill beyond actual coin boundaries
+- Self-consistency validated via centroid offset and radius consistency metrics</p>
+<p><strong>Conclusion</strong>: Acceptable for business use; cannot directly verify mask accuracy without ground truth pixel-level masks (unavailable in dataset). The approach relies on geometric reasoning rather than learned segmentation.</p>
+<h3 id="assumption-4-pre-trained-yolo-transfers-to-coins">Assumption 4: Pre-trained YOLO transfers to coins<a class="headerlink" href="#assumption-4-pre-trained-yolo-transfers-to-coins" title="Permanent link">¶</a></h3>
+<p><strong>Validation</strong>:
+- COCO dataset includes similar objects (frisbees, bowls, plates)
+- Tested pre-trained YOLOv8n baseline:
+  - mAP@0.5:0.95: 0.50
+  - mAP@0.5: 0.56
+  - Counting accuracy: 42%</p>
+<p><strong>Conclusion</strong>: Transfers reasonably; fine-tuning needed for production</p>
+<p>For details see <a href="../training/artifacts/evaluation/2026-02-13T17-30-19Z/evaluation_summary.json"><code>training/artifacts/evaluation/2026-02-13T17-30-19Z/evaluation_summary.json</code></a></p>
+<hr>
+<h2 id="5-trade-offs-accepted">5. Trade-Offs Accepted<a class="headerlink" href="#5-trade-offs-accepted" title="Permanent link">¶</a></h2>
+<h3 id="trade-off-1-no-pixel-perfect-masks">Trade-Off 1: No Pixel-Perfect Masks<a class="headerlink" href="#trade-off-1-no-pixel-perfect-masks" title="Permanent link">¶</a></h3>
+<p><strong>Decision</strong>: Use geometric approximation instead of pixel-level segmentation</p>
+<p><strong>Why</strong>:
+- No ground truth masks available for training or validation
+- Geometric masks are deterministic and reproducible
+- For circular objects, ellipse fit is &gt;90% accurate (estimated)</p>
+<p><strong>Cost</strong>: Cannot handle irregular shapes (but coins are regular)</p>
+<h3 id="trade-off-2-fine-tuning-vs-training-from-scratch">Trade-Off 2: Fine-Tuning vs. Training from Scratch<a class="headerlink" href="#trade-off-2-fine-tuning-vs-training-from-scratch" title="Permanent link">¶</a></h3>
+<p><strong>Decision</strong>: Fine-tune pre-trained YOLOv8n</p>
+<p><strong>Why</strong>:
+- 191 images insufficient for training detector from scratch
+- COCO pretraining provides robust feature extraction
+- Fine-tuning preserves general knowledge, adapts to coins</p>
+<p><strong>Cost</strong>: Dependent on Ultralytics library; 6MB model size</p>
+<h3 id="trade-off-3-detection-post-processing-vs-end-to-end-segmentation">Trade-Off 3: Detection + Post-Processing vs. End-to-End Segmentation<a class="headerlink" href="#trade-off-3-detection-post-processing-vs-end-to-end-segmentation" title="Permanent link">¶</a></h3>
+<p><strong>Decision</strong>: Two-stage pipeline (detect → fit geometry)</p>
+<p><strong>Why</strong>:
+- Decouples detection quality from mask quality
+- Easier to debug and test independently
+- Allows swapping detector without changing geometry logic</p>
+<p><strong>Cost</strong>: Two-pass inference (negligible: geometry is fast)</p>
+<h3 id="trade-off-4-evaluation-without-ground-truth-geometry">Trade-Off 4: Evaluation Without Ground Truth Geometry<a class="headerlink" href="#trade-off-4-evaluation-without-ground-truth-geometry" title="Permanent link">¶</a></h3>
+<p><strong>Decision</strong>: Use proxy metrics (centroid offset, radius consistency) instead of direct geometric IoU</p>
+<p><strong>Why</strong>:
+- No GT centroids or radii available
+- Self-consistency checks catch major errors
+- Detection mAP correlates with final output quality</p>
+<p><strong>Cost</strong>: Cannot measure absolute geometric accuracy</p>
+<hr>
+<h2 id="6-risk-assessment">6. Risk Assessment<a class="headerlink" href="#6-risk-assessment" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Risk</th>
+<th>Likelihood</th>
+<th>Impact</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Model fails on unseen backgrounds</strong></td>
+<td>Medium</td>
+<td>High</td>
+<td>Data augmentation (color jitter, mosaic)</td>
+</tr>
+<tr>
+<td><strong>Slanted coins misclassified</strong></td>
+<td>Low</td>
+<td>Medium</td>
+<td>Ellipse fitting handles aspect ratio ≠ 1</td>
+</tr>
+<tr>
+<td><strong>Overlapping coins merged</strong></td>
+<td>Low</td>
+<td>High</td>
+<td>NMS tuning; object detection naturally separates</td>
+</tr>
+<tr>
+<td><strong>False positives (non-coins)</strong></td>
+<td>Medium</td>
+<td>Medium</td>
+<td>Confidence threshold tuning; fine-tuning reduces</td>
+</tr>
+<tr>
+<td><strong>Performance degrades at scale</strong></td>
+<td>Low</td>
+<td>Medium</td>
+<td>Model is 6MB; inference ~50-150ms CPU</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="7-success-criteria">7. Success Criteria<a class="headerlink" href="#7-success-criteria" title="Permanent link">¶</a></h2>
+<h3 id="minimum-viable-product-mvp">Minimum Viable Product (MVP)<a class="headerlink" href="#minimum-viable-product-mvp" title="Permanent link">¶</a></h3>
+<ul>
+<li>Detect 90%+ of coins in simple scenes (1-3 coins, plain background)</li>
+<li>Counting accuracy &gt; 80%</li>
+<li>Inference time &lt; 500ms per image</li>
+<li>Zero crashes on valid image inputs</li>
+</ul>
+<h3 id="production-ready">Production-Ready<a class="headerlink" href="#production-ready" title="Permanent link">¶</a></h3>
+<ul>
+<li>mAP@0.5:0.95 &gt; 0.70 (fine-tuned model)</li>
+<li>Counting accuracy &gt; 80%</li>
+<li>Handle complex scenes (10+ coins, occlusion, clutter)</li>
+<li>Graceful degradation on edge cases</li>
+</ul>
+<h3 id="engineering-quality">Engineering Quality<a class="headerlink" href="#engineering-quality" title="Permanent link">¶</a></h3>
+<ul>
+<li>Structured evaluation framework with multiple metrics</li>
+<li>Unit + integration test coverage &gt; 90%</li>
+<li>Production observability (structured logging, health checks)</li>
+<li>Clean architecture (separation of concerns, swappable components)</li>
+<li>Documentation demonstrating analytical thinking</li>
+</ul>
+<hr>
+</article>
+</div>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+<button class="md-top md-icon" data-md-component="top" hidden="" type="button">
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+</main>
+<footer class="md-footer">
+<nav aria-label="Footer" class="md-footer__inner md-grid">
+<a aria-label="Previous: Home" class="md-footer__link md-footer__link--prev" href="..">
+<div class="md-footer__button md-icon">
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+</div>
+<div class="md-footer__title">
+<span class="md-footer__direction">
+                Previous
+              </span>
+<div class="md-ellipsis">
+                Home
+              </div>
+</div>
+</a>
+<a aria-label="Next: Architecture Overview" class="md-footer__link md-footer__link--next" href="../02_architecture_overview/">
+<div class="md-footer__title">
+<span class="md-footer__direction">
+                Next
+              </span>
+<div class="md-ellipsis">
+                Architecture Overview
+              </div>
+</div>
+<div class="md-footer__button md-icon">
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"></path></svg>
+</div>
+</a>
+</nav>
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+<div class="md-copyright__highlight">
+      2026 Coin Detection Challenge
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+<div class="md-social">
+<a class="md-social__link" href="https://github.com/your-org/coin-detection" rel="noopener" target="_blank" title="GitHub Repository">
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+</a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<div class="md-progress" data-md-component="progress" role="progressbar"></div>
+<script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.path", "navigation.instant", "navigation.instant.progress", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.select", "content.code.annotate", "content.action.edit", "content.action.view", "content.tooltips", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+<script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>
